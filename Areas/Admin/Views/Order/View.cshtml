@@ -1,0 +1,151 @@
+﻿@model PCShop.Models.EF.Order
+@{
+    ViewBag.Title = "Chi tiết đơn hàng ";
+}
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Quản lý đơn hàng</h1>
+            </div>
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+
+                        <h1 class="card-title">
+                            Chi tiết đơn hàng <b>@Model.code</b> -
+                            @if (Model.payment == 0)
+                            {
+                                <span class="badge badge-danger">CHƯA THANH TOÁN</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-success">ĐÃ THANH TOÁN</span>
+                            }
+                        </h1>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Mã đơn hàng</label>
+                                        <p class="form-control">@Model.code</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Khách hàng</label>
+                                        <p class="form-control">@Model.customerName</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Tổng tiền</label>
+                                        <p class="form-control">@PCShop.Models.Common.CommonHelper.ConvertMoney(@Model.totalAmount)đ</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Email</label>
+                                        <p class="form-control">@Model.email</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Số điện thoại</label>
+                                        <p class="form-control">@Model.phone</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Ngày tạo</label>
+                                        <p class="form-control">@Model.createdDate</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Ảnh</th>
+                                                <th>Tên sản phẩm</th>
+                                                <th>Giá</th>
+                                                <th>Số lượng</th>
+                                                <th>Thành tiền</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model != null && Model.orderDetails.Any())
+                                            {
+                                                foreach (var item in Model.orderDetails)
+                                                {
+                                                    var strImg = "";
+                                                    var checkImg = item.product.productImages.FirstOrDefault(x => x.isDefault);
+                                                    if (checkImg != null)
+                                                    {
+                                                        strImg = checkImg.image;
+                                                    }
+
+                                                    var price = item.product.priceSale > 0 ? @item.product.priceSale : @item.product.price;
+                                                    <tr>
+                                                        <td width="50">@item.Id</td>
+                                                        <td><img class="imgProduct" src="@strImg" alt="Ảnh sản phẩm" width="120" /> </td>
+                                                        <td>@item.product.title</td>
+                                                        <td>@price</td>
+                                                        <td>@item.quantity</td>
+                                                        <td>@PCShop.Models.Common.CommonHelper.ConvertMoney(price * item.quantity)đ</td>
+                                                    </tr>
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td>Không có dữ liệu</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Ảnh</th>
+                                                <th>Tên sản phẩm</th>
+                                                <th>Giá</th>
+                                                <th>Số lượng</th>
+                                                <th>Thành tiền</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /.container-fluid -->
+</section>
+<!-- /.content -->

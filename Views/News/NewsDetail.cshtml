@@ -1,0 +1,32 @@
+﻿@model PCShop.Models.EF.News
+
+@{
+    ViewBag.Title = ViewBag.Tieude;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/main_styles.css">
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/contact_styles.css">
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/contact_responsive.css">
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/bootstrap4/bootstrap.min.css">
+
+<div class="container contact_container">
+    <div class="row">
+        <div class="col">
+            <div class="breadcrumbs d-flex flex-row align-items-center">
+                <ul>
+                    <li><a href="/">Trang chủ</a></li>
+                    <li class="active"><a href="/tin-tuc"><i class="fa fa-angle-right" aria-hidden="true"></i>Tin tức</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            @Html.Raw(Model.detail)
+        </div>
+    </div>
+
+</div>

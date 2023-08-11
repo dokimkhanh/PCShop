@@ -1,0 +1,27 @@
+﻿@model IEnumerable<PCShop.Models.EF.Category>
+
+<ul class="sidebar_categories">
+    @if (Model != null && Model.Any())
+    {
+
+        foreach (var item in Model)
+        {
+            if (item.id == ViewBag.CategoryID)
+            {
+                <li class="active"><a href="/danh-muc/@item.alias/@(item.id)"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i></span>@item.title</a></li>
+            }
+            else
+            {
+                <li><a href="/danh-muc/@item.alias/@(item.id)">@item.title</a></li>
+            }
+
+            @*<li><a href="#">Men</a></li>
+                <li class="active"><a href="#"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i></span>Women</a></li>
+                <li><a href="#">Accessories</a></li>
+                <li><a href="#">New Arrivals</a></li>
+                <li><a href="#">Collection</a></li>
+                <li><a href="#">Shop</a></li>*@
+        }
+    }
+
+</ul>

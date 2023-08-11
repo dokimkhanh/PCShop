@@ -1,0 +1,109 @@
+﻿@model PCShop.Models.EF.News
+@{
+    ViewBag.Title = "Sửa tin tức";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Thêm danh mục</h1>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- SELECT2 EXAMPLE -->
+        <div class="card card-default">
+            <div class="card-header">
+                <h3 class="card-title">Sửa nội dung tin tức</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            @using (Html.BeginForm("Edit", "News", FormMethod.Post, new { }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(false)
+                @Html.HiddenFor(x => x.id)
+                @Html.HiddenFor(x => x.createdDate)
+                @Html.HiddenFor(x => x.createdBy)
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="title">Tiêu đề</label>
+                                @Html.TextBoxFor(x => x.title, new { @class = "form-control", @placeholder = "Khuyến mãi tháng 10" })
+                                @Html.ValidationMessageFor(x => x.title, null, new { @class = "text-danger" })
+                                @*<input type="text" class="form-control" id="exampleInputEmail1" >*@
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Mô tả</label>
+                                @Html.TextBoxFor(x => x.description, new { @class = "form-control", @placeholder = "Khuyến mãi 50% trong tháng 10" })
+                                @Html.ValidationMessageFor(x => x.description, null, new { @class = "text-danger" })
+                                @*<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Danh mục phụ kiện">*@
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Chi tiết</label>
+                                @Html.TextAreaFor(x => x.detail, new { @class = "form-control", @id = "txtDetail", @placeholder = "Nhân dịp mùa hè, PCShop tưng bừng..." })
+                                @Html.ValidationMessageFor(x => x.detail, null, new { @class = "text-danger" })
+                                @*<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Danh mục phụ kiện">*@
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Ảnh bìa</label>
+                                <div class="input-group">
+                                    <div class="custom-file">
+                                        @Html.TextBoxFor(x => x.image, new { @class = "form-control", @id = "txtImg" })
+                                        @Html.ValidationMessageFor(x => x.image, null, new { @class = "text-danger" })
+                                    </div>
+                                    <div class="input-group-append">
+                                        <input class="btn btn-primary" onclick="BrowserServer('txtImg');" value="Upload" />
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /.form-group -->
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                </div>
+                <!-- /.card-body -->
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">Sửa nội dung</button>
+                </div>
+            }
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.container-fluid -->
+</section>
+
+@section scripts{
+    <script>
+
+        $(document).ready(function () {
+            CKEDITOR.replace('txtDetail', {
+                customConfig: '/content/ckeditor/config.js',
+                extraAllowedContent: 'span',
+            });
+        });
+
+        function BrowserServer(field) {
+            var finder = new CKFinder();
+            finder.selectActionFunction = function (fileUrl) {
+                document.getElementById(field).value = fileUrl;
+            };
+            finder.popup();
+        }
+    </script>
+}

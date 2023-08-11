@@ -1,0 +1,74 @@
+﻿@model IEnumerable<PCShop.Models.EF.Product>
+
+<div class="row">
+    <div class="col text-center">
+        <div class="section_title new_arrivals_title">
+            <h2>ĐANG CÓ ƯU ĐÃI</h2>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <div class="product_slider_container">
+            <div class="owl-carousel owl-theme product_slider">
+
+                <!-- Slide 1 -->
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        var tempImg = item.productImages.FirstOrDefault(x => x.isDefault);
+                        var img = tempImg != null ? tempImg.image : "";
+                        var sale = @item.price - @item.priceSale;
+
+                        <div class="owl-item product_slider_item">
+                            <div class="product-item">
+                                <div class="product discount">
+                                    <div class="product_image">
+                                        <img src="@img" alt="@item.title">
+                                    </div>
+                                    <div class="favorite favorite_left"></div>
+                                    @if (Convert.ToInt32(sale) > 0)
+                                    {
+                                        <div class="product_bubble product_bubble_right product_bubble_red d-flex flex-column align-items-center">
+                                            <span>
+                                                -@PCShop.Models.Common.CommonHelper.ConvertMoney(@sale)
+                                            </span>
+                                        </div>
+                                    }
+                                    @if (item.isNew)
+                                    {
+                                        <div class="product_bubble product_bubble_left product_bubble_green d-flex flex-column align-items-center"><span>mới</span></div>
+                                    }
+                                    <div class="product_info">
+                                        <h6 class="product_name"><a href="/san-pham/@item.alias-p@(item.id)">@item.title</a></h6>
+                                        @if (item.priceSale > 0)
+                                        {
+
+                                            <div class="product_price">@PCShop.Models.Common.CommonHelper.ConvertMoney(@item.priceSale)đ<span>@PCShop.Models.Common.CommonHelper.ConvertMoney(@item.price)đ</span></div>
+                                        }
+                                        else
+                                        {
+                                            <div class="product_price">@PCShop.Models.Common.CommonHelper.ConvertMoney(@item.price)đ</div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <!-- End : Slide 1 -->
+            </div>
+
+            <!-- Slider Navigation -->
+
+            <div class="product_slider_nav_left product_slider_nav d-flex align-items-center justify-content-center flex-column">
+                <i class="fa fa-chevron-left" aria-hidden="true"></i>
+            </div>
+            <div class="product_slider_nav_right product_slider_nav d-flex align-items-center justify-content-center flex-column">
+                <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,73 @@
+﻿@model PCShop.Models.EF.SystemSettings
+@{
+    ViewBag.Title = "Sửa cài đặt";
+}
+
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Sửa cài đặt</h1>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- SELECT2 EXAMPLE -->
+        <div class="card card-default">
+            <div class="card-header">
+                <h3 class="card-title">Sửa thông tin cài đặt</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            @using (Html.BeginForm("Edit", "SystemSettings", FormMethod.Post, new { }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(false);
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="title">Tên từ khoá</label>
+                                @Html.TextBoxFor(x => x.settingKey, new { @class = "form-control", @placeholder = "TieuDeShop", @readonly = "readonly" })
+                                @Html.ValidationMessageFor(x => x.settingKey, null, new { @class = "text-danger" })
+                            </div>
+                            <div class="form-group">
+                                <label for="title">Giá trị</label>
+                                @Html.TextBoxFor(x => x.settingValue, new { @class = "form-control", @placeholder = "PCShop" })
+                                @Html.ValidationMessageFor(x => x.settingValue, null, new { @class = "text-danger" })
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Mô tả</label>
+                                @Html.TextBoxFor(x => x.settingDescription, new { @class = "form-control", @placeholder = "Danh mục phụ kiện" })
+                                @Html.ValidationMessageFor(x => x.settingDescription, null, new { @class = "text-danger" })
+                            </div>
+                            <!-- /.form-group -->
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                </div>
+                <!-- /.card-body -->
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary btn-block">Sửa cài đặt</button>
+                </div>
+            }
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.container-fluid -->
+</section>
+
+
+

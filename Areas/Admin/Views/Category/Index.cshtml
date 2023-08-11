@@ -1,0 +1,219 @@
+﻿@model PagedList.PagedList<PCShop.Models.EF.Category>
+@using PagedList;
+@using PagedList.Mvc;
+@{
+    ViewBag.Title = "Danh mục";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Quản lý danh mục sản phẩm</h1>
+            </div>
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Dữ liệu danh mục</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                            <div class="row mb-2">
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="float-sm-left">
+                                        @using (Html.BeginForm("Index", "Category", FormMethod.Get, new { }))
+                                        {
+                                            <div class="input-group">
+                                            @*<label>Tìm kiếm:</label>*@
+                                                @Html.TextBox("txtSearch", null, new { @class = "form-control", @placeholder = "Từ khoá cần tìm kiếm" })
+                                                <div class="input-group-append">
+                                                    <button type="submit" class="btn btn-default">
+                                                        <i class="fa fa-search"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="float-sm-right">
+                                        <a type="button" href="/Admin/Category/Add" class="btn btn-success">Thêm danh mục mới</a>
+                                        <a type="button" href="#" class="btn btn-danger" id="btnDeleteAll">Xoá danh mục đã chọn</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                                        <thead>
+                                            <tr>
+                                                <th class="sorting" tabindex="0" rowspan="1" colspan="1"><input type="checkbox" id="selectAll" /></th>
+                                                <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-sort="ascending">#</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Tên</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Mô tả</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Ngày tạo</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Người tạo</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Lần sửa cuối</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Người sửa</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model != null && Model.Any())
+                                            {
+                                                var i = ((ViewBag._page - 1) * ViewBag._pageSize) + 1;
+                                                foreach (var item in Model)
+                                                {
+                                                    <tr id="row_@item.id">
+                                                        <td><input type="checkbox" id="selectRow" value="@item.id" /></td>
+                                                        <td width="50" class="dtr-control sorting_1" tabindex="0">@i</td>
+                                                        <td>@item.title</td>
+                                                        <td>@item.description</td>
+                                                        <td>@item.createdDate</td>
+                                                        <td>@item.createdBy</td>
+                                                        <td>@item.modifiedDate</td>
+                                                        <td>@item.modifiedBy</td>
+                                                        <td>
+                                                            <a href="/Admin/Category/Edit/@item.id" class="btn btn-primary">Sửa</a>
+                                                            <a href="#" data-id="@item.id" class="btn btn-danger" id="btnDelete">Xoá</a>
+                                                        </td>
+                                                    </tr>
+                                                    i++;
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td>Không có dữ liệu</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th></th>
+                                                <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-sort="ascending">#</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Tên</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Mô tả</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Ngày tạo</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Người tạo</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Lần sửa cuối</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Người sửa</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Thao tác</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-md-5"><div class="dataTables_info" id="example1_info" role="status" aria-live="polite">Showing 1 to @Model.Count entries</div></div>
+                                <div class="col-sm-12 col-md-7">
+                                    <div class="dataTables_paginate paging_simple_numbers" id="example1_paginate">
+                                        <ul class="pagination">
+                                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page }))
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /.container-fluid -->
+</section>
+<!-- /.content -->
+
+@section scripts{
+    <script>
+
+        $('body').on('change', '#selectAll', function () {
+            var checkStatus = this.checked;
+            var checkBox = $(this).parents('.card-body').find('tr td input:checkbox');
+            checkBox.each(function () {
+                this.checked = checkStatus;
+                if (this.checked) {
+                    checkBox.attr('selected', 'checked');
+                } else {
+                    checkBox.attr('selected', '');
+                }
+            });
+            //alert(this.checked);
+        });
+
+        $('body').on('click', '#btnDeleteAll', function (e) {
+            e.preventDefault();
+            var str = "";
+            var checkBox = $(this).parents('.card').find('tr td input:checkbox');
+            var i = 0;
+            checkBox.each(function () {
+                if (this.checked) {
+                    checkBox.attr('selected', 'checked');
+                    var _id = $(this).val();
+                    if (i == 0) {
+                        str += _id;
+                    } else {
+                        str += "," + _id;
+                    }
+                    i++;
+                } else {
+                    checkBox.attr('selected', '');
+                }
+            });
+            alert("aa: " + str);
+            if (str.length > 0) {
+                var _conf = confirm('Bạn có muốn xoá các tin đã chọn không?');
+                if (_conf) {
+                    $.ajax({
+                        url: '/Admin/Category/DeleteAll',
+                        type: 'POST',
+                        data: { ids: str },
+                        success: function (rs) {
+                            if (rs.success) {
+                                location.reload();
+                            }
+                        }
+                    });
+                }
+
+            }
+        });
+
+        $(document).ready(function () {
+            $('body').on('click', '#btnDelete', function () {
+                var id = $(this).data('id');
+                //alert(id);
+                var conf = confirm('Bạn có chắc chắn muốn xoá?');
+                if (conf === true) {
+                    $.ajax({
+                        url: '/Admin/Category/Delete',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (rs) {
+                            if (rs.success) {
+                                $('#row_' + id).remove();
+                            }
+                        }
+                    })
+                }
+            });
+        });
+    </script>
+}

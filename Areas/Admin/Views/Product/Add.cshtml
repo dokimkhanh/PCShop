@@ -1,0 +1,220 @@
+﻿@model PCShop.Models.EF.Product
+@{
+    ViewBag.Title = "Thêm sản phẩm";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Thêm sản phẩm</h1>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- SELECT2 EXAMPLE -->
+        <div class="card card-default">
+            <div class="card-header">
+                <h3 class="card-title">Thêm sản phẩm mới</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            @using (Html.BeginForm("Add", "Product", FormMethod.Post, new { }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true);
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="title">Tên sản phẩm</label>
+                                @Html.TextBoxFor(x => x.title, new { @class = "form-control", @placeholder = "Chuột không dây" })
+                                @Html.ValidationMessageFor(x => x.title, null, new { @class = "text-danger" })
+                                @*<input type="text" class="form-control" id="exampleInputEmail1" >*@
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Mô tả</label>
+                                @Html.TextBoxFor(x => x.description, new { @class = "form-control", @placeholder = "Chuột không dây Akko" })
+                                @Html.ValidationMessageFor(x => x.description, null, new { @class = "text-danger" })
+                                @*<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Danh mục phụ kiện">*@
+                            </div>
+                            <div class="form-group">
+                                <label>SKU</label>
+                                @Html.TextBoxFor(x => x.productCode, new { @class = "form-control", @placeholder = "Mã sản phẩm" })
+                                @Html.ValidationMessageFor(x => x.productCode, null, new { @class = "text-danger" })
+                                @*<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Danh mục phụ kiện">*@
+                            </div>
+                            <div class="form-group">
+                                <label>Danh mục sản phẩm</label>
+                                @Html.DropDownListFor(x => x.categoryID, ViewBag.productCategoryID as SelectList, "Chọn danh mục", new { @class = "form-control" })
+                                @Html.ValidationMessageFor(x => x.categoryID, null, new { @class = "text-danger" })
+                                @*<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Danh mục phụ kiện">*@
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Chi tiết</label>
+                                @Html.TextAreaFor(x => x.detail, new { @class = "form-control", @id = "txtDetail" })
+                                @Html.ValidationMessageFor(x => x.detail, null, new { @class = "text-danger" })
+                                @*<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Danh mục phụ kiện">*@
+                            </div>
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label for="description">Giá gốc</label>
+                                        @Html.TextBoxFor(x => x.price, new { @class = "form-control", @id = "txtPrice", @placeholder = "Giá gốc..." })
+                                        @Html.ValidationMessageFor(x => x.price, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label for="description">Giá khuyến mãi</label>
+                                        @Html.TextBoxFor(x => x.priceSale, new { @class = "form-control", @id = "txtSale", @placeholder = "Giá khuyến mãi" })
+                                        @Html.ValidationMessageFor(x => x.priceSale, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label for="description">Số lượng</label>
+                                        @Html.TextBoxFor(x => x.quantity, new { @class = "form-control", @placeholder = "Số lượng sản phẩm" })
+                                        @Html.ValidationMessageFor(x => x.quantity, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label for="description">Thuộc tính sản phẩm</label>
+                                        <div class="custom-control custom-checkbox">
+                                            @Html.CheckBoxFor(x => x.isNew, new { @class = "custom-control-input", @id = "checkIsNew" })
+                                            <label for="checkIsNew" class="custom-control-label">Hàng mới về</label>
+                                        </div>
+                                        <div class="custom-control custom-checkbox">
+                                            @Html.CheckBoxFor(x => x.isSale, new { @class = "custom-control-input", @id = "checkIsSale" })
+                                            <label for="checkIsSale" class="custom-control-label">Hàng giảm giá</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /.form-group -->
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="description">Quản lý ảnh sản phẩm</label>
+                            <table class="table table-bordered table-striped dataTable dtr-inline">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Ảnh</th>
+                                        <th width="300">Chọn làm ảnh đại diện</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbImg">
+                                    @*khanh*@
+                                </tbody>
+                            </table>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-append">
+                                        <input class="btn btn-primary" onclick="BrowserServer('txtImg');" value="Upload" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="tempID" value="0" />
+                <!-- /.card-body -->
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-outline-success">Thêm sản phẩm</button>
+                </div>
+            }
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.container-fluid -->
+</section>
+
+@section scripts{
+    <script>
+
+        $(document).ready(function () {
+            CKEDITOR.replace('txtDetail', {
+                customConfig: '/content/ckeditor/config.js',
+                extraAllowedContent: 'span',
+            });
+
+            $('body').on('click', '.btnXoaAnh', function () {
+                var conf = confirm('Xác nhận xoá?');
+                if (conf) {
+                    var _id = $(this).data('id');
+                    //alert(id);
+                    $('#rowID_' + _id).remove();
+                    var tempID = $("#tempID").val();
+                    var currentID = parseInt(tempID) - 1;
+                }
+            });
+
+            //$('body').on('change', '#txtPrice', function () {
+            //    var temptxtPrice = $(this).val().replace(/[`~!#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+            //    var money = new Intl.NumberFormat('vi-VN').format(temptxtPrice);
+            //    $('#txtPrice').val(money);
+            //});
+
+            //$('body').on('change', '#txtSale', function () {
+            //    var temptxtSale = $(this).val().replace(/[`~!#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+            //    var moneySale = new Intl.NumberFormat('vi-VN').format(temptxtSale);
+            //    $('#txtSale').val(moneySale);
+            //});
+        });
+
+        function BrowserServer(field) {
+            var finder = new CKFinder();
+            finder.selectActionFunction = function (fileUrl) {
+                //document.getElementById(field).value = fileUrl;
+                uploadImage(fileUrl);
+            };
+            finder.popup();
+        }
+
+        function uploadImage(url) {
+            //alert(url);
+            var tempID = $("#tempID").val();
+            var currentID = parseInt(tempID) + 1;
+            var str = "";
+            var isCheck = (currentID == 1) ? "checked" : "";
+            str += `
+                <tr id="rowID_${currentID}">
+                    <td>${currentID}</td>
+                    <td><img width="150" src="${url}" alt="Ảnh bìa" /><input type="hidden" value="${url}" name="listImage"/></td>
+                    <td>
+                        <div class="custom-control custom-radio">
+                            <input class="custom-control-input" type="radio" name="rdDefault" id="radionDefault_${currentID}" value="${currentID}" ${isCheck}>
+                            <label for="radionDefault_${currentID}" class="custom-control-label">Chọn</label>
+                        </div>
+                    </td>
+                    <td><a href="#" type="button" data-id="${currentID}" class="btn btn-danger btnXoaAnh">Xoá</a></td>
+                </tr>`;
+            $('#tbImg').append(str);
+            $('#tempID').val(currentID);
+        }
+
+    </script>
+}
+

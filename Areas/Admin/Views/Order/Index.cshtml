@@ -1,0 +1,215 @@
+﻿@model PagedList.PagedList<PCShop.Models.EF.Order>
+@using PagedList
+@using PagedList.Mvc
+@{
+    ViewBag.Title = "Quản lý đơn hàng";
+}
+
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Quản lý đơn hàng</h1>
+            </div>
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Dữ liệu đơn hàng</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                                        <thead>
+                                            <tr>
+                                                @*<th class="sorting" tabindex="0" rowspan="1" colspan="1"><input type="checkbox" id="selectAll" /></th>*@
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">#</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Mã đơn</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Tên khách</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Số điện thoại</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Tổng tiền</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Ngày tạo</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Trạng thái</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model != null && Model.Any())
+                                            {
+                                                var i = ((ViewBag._page - 1) * ViewBag._pageSize) + 1;
+
+                                                foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        <td width="50" class="dtr-control sorting_1" tabindex="0">@i</td>
+                                                        <td>@item.code</td>
+                                                        <td>@item.customerName</td>
+                                                        <td>@item.phone</td>
+                                                        <td>@PCShop.Models.Common.CommonHelper.ConvertMoney(@item.totalAmount)đ</td>
+                                                        <td>@item.createdDate</td>
+                                                        <td>
+                                                            @if (item.paymentStatus == 0) //0: PENDING; 1: COMPLETED
+                                                            {
+                                                                <span class="badge badge-danger">CHƯA THANH TOÁN</span>
+                                                            }
+                                                            else if (item.paymentStatus == 1)
+                                                            {
+                                                                <span class="badge badge-success">ĐÃ THANH TOÁN</span>
+
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge badge-warning">HUỶ BỎ</span>
+
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            <a href="/Admin/Order/View/@item.Id" class="btn btn-primary">Xem chi tiết</a>
+                                                            <a href="#" data-id="@item.Id" class="btn btn-info" id="btnUpdate">Cập nhật thanh toán</a>
+                                                        </td>
+                                                    </tr>
+                                                    i++;
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td>Không có dữ liệu</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">#</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Mã đơn</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Tên khách</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Số điện thoại</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Tổng tiền</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Ngày tạo</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Trạng thái</th>
+                                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Thao tác</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-md-5"><div class="dataTables_info" id="example1_info" role="status" aria-live="polite">Showing 1 to @Model.Count entries</div></div>
+                                <div class="col-sm-12 col-md-7">
+                                    <div class="dataTables_paginate paging_simple_numbers" id="example1_paginate">
+                                        <ul class="pagination">
+                                            @Html.PagedListPager(Model, page => Url.Action("Index", new { page }))
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /.container-fluid -->
+</section>
+<!-- /.content -->
+
+<div class="modal fade" id="modal-default">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Cập nhật thanh toán</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="txtOrderID" value="0" />
+                <div class="form-group">
+                    <label>Trạng thái</label>
+                    <select class="form-control" id="paymentStatus">
+                        <option value="0">Chưa thanh toán</option>
+                        <option value="1">Đã thanh toán</option>
+                        <option value="3">Huỷ bỏ</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="btnSave">Lưu</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            $('body').on('click', '#btnUpdate', function () {
+                var id = $(this).data('id');
+                $('#txtOrderID').val(id);
+                $('#modal-default').modal('show');
+                console.log(id);
+            });
+
+            $('body').on('click', '#btnSave', function () {
+                var id = $('#txtOrderID').val();
+                var status = $('#paymentStatus').val();
+                console.log(id + "__" + status);
+                $.ajax({
+                    url: '/Admin/Order/UpdatePayment',
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        status: status
+                    },
+                    success: function (res) {
+                        if (res.Success) {
+                            //location.reload()
+                            toastr["success"]("Cập nhật thanh toán thành công", "Thông báo")
+                            toastr.options = {
+                                "closeButton": true,
+                                "debug": false,
+                                "newestOnTop": false,
+                                "progressBar": true,
+                                "positionClass": "toast-top-right",
+                                "preventDuplicates": false,
+                                "onclick": null,
+                                "showDuration": "300",
+                                "hideDuration": "1000",
+                                "timeOut": "5000",
+                                "extendedTimeOut": "1000",
+                                "showEasing": "swing",
+                                "hideEasing": "linear",
+                                "showMethod": "fadeIn",
+                                "hideMethod": "fadeOut"
+                            }
+                            setTimeout(function () { location.reload(); }, 2000);
+                        }
+                    }
+                })
+            });
+        });
+    </script>
+}

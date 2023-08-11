@@ -1,0 +1,84 @@
+﻿@model PagedList.PagedList<PCShop.Models.EF.News>
+@using PagedList;
+@using PagedList.Mvc;
+@{
+    ViewBag.Title = "Tin tức";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/main_styles.css">
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/contact_styles.css">
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/contact_responsive.css">
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/bootstrap4/bootstrap.min.css">
+
+<div class="container contact_container">
+    <div class="row">
+        <div class="col">
+            <div class="breadcrumbs d-flex flex-row align-items-center">
+                <ul>
+                    <li><a href="/">Trang chủ</a></li>
+                    <li class="active"><a href="/tin-tuc"><i class="fa fa-angle-right" aria-hidden="true"></i>Tin tức</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        foreach (var item in Model)
+        {
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <div class="img-box">
+                        <img src="@item.image" alt="@item.title" width="250" height="120" />
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="content-box">
+                        <h3>
+                            @if (@item.title.Length < 56)
+                            {
+                                <a href="/tin-tuc/@item.alias-n@(item.id)">@item.title</a>
+                            }
+                            else
+                            {
+                                <a href="/tin-tuc/@item.alias-n@(item.id)">@item.title.Substring(0, 56)...</a>
+
+                            }
+
+                        </h3>
+                        <div class="description-box">
+                            @if (item.description.Length < 120)
+                            {
+                                <p>@item.description</p>
+                            }
+                            else
+                            {
+                                <p>
+                                    @item.description.Substring(0, 120)...
+                                    <strong>
+                                        <a href="/tin-tuc/@item.alias-n@(item.id)">
+                                            Đọc tiếp
+                                        </a>
+                                    </strong>
+                                </p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <div class="row">
+        <div class="col-sm-12 col-md-5"><div class="dataTables_info" id="example1_info" role="status" aria-live="polite">Showing 1 to @Model.Count entries</div></div>
+        <div class="col-sm-12 col-md-7">
+            <div class="dataTables_paginate paging_simple_numbers" id="example1_paginate">
+                <ul class="pagination">
+                    @Html.PagedListPager(Model, page => Url.Action("Index", new { page }))
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

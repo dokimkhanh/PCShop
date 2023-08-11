@@ -1,0 +1,107 @@
+﻿@using Microsoft.AspNet.Identity.EntityFramework
+@model IEnumerable<PCShop.Models.ApplicationUser>
+@{
+    ViewBag.Title = "Quản lý tài khoản";
+}
+
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Quản lý tài khoản</h1>
+            </div>
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Danh sách tài khoản</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                            <div class="row mb-2">
+                                <div class="col-sm-12 col-md-12 right">
+                                    <div class="float-sm-right">
+                                        <a type="button" href="/Admin/Account/Register" class="btn btn-primary">Thêm mới</a>
+                                        <a type="button" href="#" class="btn btn-danger" id="btnDeleteAll">Xoá tin tức đã chọn</a>
+                                        <br />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+
+                                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Tài khoản</th>
+                                                <th>Họ tên</th>
+                                                <th>Số điện thoại</th>
+                                                <th>Email</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model != null && Model.Any())
+                                            {
+
+                                                foreach (var item in Model)
+                                                {
+                                                    <tr>
+                                                        <td>@item.Id</td>
+                                                        <td>@item.UserName</td>
+                                                        <td>@item.FullName</td>
+                                                        <td>@item.Phone</td>
+                                                        <td>@item.Email</td>
+                                                        <td>
+                                                            <a href="/Admin/Account/Edit/@item.UserName" class="btn btn-primary">Sửa</a>
+                                                            <a href="#" data-id="@item.Id" class="btn btn-danger" id="btnDelete">Xoá</a>
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td>Chưa có dữ liệu</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Tài khoản</th>
+                                                <th>Họ tên</th>
+                                                <th>Số điện thoại</th>
+                                                <th>Email</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /.container-fluid -->
+</section>
+<!-- /.content -->

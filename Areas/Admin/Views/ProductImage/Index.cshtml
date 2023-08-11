@@ -1,0 +1,113 @@
+﻿@model IEnumerable<PCShop.Models.EF.ProductImage>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutEmpty.cshtml";
+}
+
+<section class="content">
+    <div class="card">
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-12">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="float-sm-right">
+                            <input type="button" href="#" onclick="BrowserServer('txtImg');" value="Thêm ảnh" class="btn btn-success" />
+                            <input type="button" href="#" class="btn btn-danger" id="btnDeleteAll" value="Xoá hết ảnh" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                        <thead>
+                            <tr>
+                                <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-sort="ascending">#</th>
+                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Ảnh</th>
+                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var item in Model)
+                                {
+                                    <tr id="row_@item.Id">
+                                        <td width="50" class="dtr-control sorting_1" tabindex="0">@item.Id</td>
+                                        <td><img class="imgProduct" src="@item.image" data-id="@item.Id" alt="Ảnh sản phẩm" width="120" /> </td>
+                                        <td width="200">
+                                            <a href="#" data-id="@item.Id" class="btn btn-danger" id="btnDelete">Xoá</a>
+                                            <a href="#" data-id="@item.Id" class="btn btn-success" id="btnDefault">Mặc định</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td>Không có dữ liệu</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+
+                                <th class="sorting sorting_asc" tabindex="0" aria-controls="example1" rowspan="1" colspan="1" aria-sort="ascending">#</th>
+                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Ảnh</th>
+                                <th class="sorting" tabindex="0" aria-controls="example1" rowspan="1" colspan="1">Thao tác</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" "></script>
+<script>
+
+    $(document).ready(function () {
+        $('body').on('click', '#btnDelete', function () {
+            var id = $(this).data('id');
+            //alert(id);
+            var conf = confirm('Bạn có chắc chắn muốn xoá?');
+            if (conf === true) {
+                $.ajax({
+                    url: '/Admin/ProductImage/Delete',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (rs) {
+                        if (rs.success) {
+                            $('#row_' + id).remove();
+                        }
+                    }
+                });
+            }
+        });
+    });
+
+
+    function BrowserServer(field) {
+         var finder = new CKFinder();
+         finder.selectActionFunction = function (fileUrl) {
+         addImage(@ViewBag.ProductID, fileUrl);
+         };
+         finder.popup();
+    }
+
+    function addImage(id, url) {
+        $.ajax({
+            url: '/Admin/ProductImage/AddImage',
+            type: 'POST',
+            data: { productID: id, url: url },
+            success: function (rs) {
+                if (rs.success) {
+                    window.location.reload();
+                }
+            }
+        });
+    };
+</script>
+
+

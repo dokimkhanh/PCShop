@@ -1,0 +1,68 @@
+﻿@model PCShop.Models.EF.Category
+@{
+    ViewBag.Title = "Thêm danh mục";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Thêm danh mục</h1>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- SELECT2 EXAMPLE -->
+        <div class="card card-default">
+            <div class="card-header">
+                <h3 class="card-title">Thông tin danh mục</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            @using (Html.BeginForm("Add", "Category", FormMethod.Post, new { }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(false);
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="title">Tên danh mục</label>
+                                @Html.TextBoxFor(x => x.title, new { @class = "form-control", @placeholder = "Phụ kiện" })
+                                @Html.ValidationMessageFor(x => x.title, null, new { @class = "text-danger" })
+                                @*<input type="text" class="form-control" id="exampleInputEmail1" >*@
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Mô tả</label>
+                                @Html.TextBoxFor(x => x.description, new { @class = "form-control", @placeholder = "Danh mục phụ kiện" })
+                                @Html.ValidationMessageFor(x => x.description, null, new { @class = "text-danger" })
+                                @*<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Danh mục phụ kiện">*@
+                            </div>
+
+                            <!-- /.form-group -->
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                </div>
+                <!-- /.card-body -->
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">Thêm danh mục</button>
+                </div>
+            }
+        </div>
+        <!-- /.card -->
+    </div>
+    <!-- /.container-fluid -->
+</section>

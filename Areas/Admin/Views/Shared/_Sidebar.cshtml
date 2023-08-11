@@ -1,0 +1,162 @@
+﻿<!-- Sidebar -->
+<!-- Brand Logo -->
+<a href="/Admin" class="brand-link">
+    <img src="~/Content/client/dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+    <span class="brand-text font-weight-light">@PCShop.Models.Common.SettingsHelper.GetValue("Title")</span>
+</a>
+<div class="sidebar">
+    <!-- Sidebar user (optional) -->
+    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="image">
+            <img src="~/Content/client/dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+        </div>
+        <div class="info">
+            <a href="#" class="d-block">
+                @if (Request.IsAuthenticated)
+                {
+                    @User.Identity.Name
+                }
+            </a>
+        </div>
+    </div>
+
+    <!-- Sidebar Menu -->
+    <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+            <!-- Add icons to the links using the .nav-icon class
+            with font-awesome or any other icon font library -->
+            <li class="nav-item">
+                <a href="/Admin" class="nav-link">
+                    <i class="nav-icon fas fa-tachometer-alt"></i>
+                    <p>
+                        Thống kê
+                    </p>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="/Admin/News" class="nav-link">
+                    <i class="nav-icon fas fa-newspaper"></i>
+                    <p>
+                        Tin tức
+                        <span class="right badge badge-danger">New</span>
+                    </p>
+                </a>
+            </li>
+
+            <li class="nav-header">SẢN PHẨM</li>
+
+            @*<li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon far fa-envelope"></i>
+                        <p>
+                            Quản lý sản phẩm
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="../mailbox/mailbox.html" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Inbox</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="../mailbox/compose.html" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Compose</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="../mailbox/read-mail.html" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Read</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>*@
+
+            <li class="nav-item">
+                <a href="/Admin/Category" class="nav-link">
+                    <i class="nav-icon fas fa-tag"></i>
+                    <p>
+                        Quản lý danh mục
+                    </p>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="/Admin/Product" class="nav-link">
+                    <i class="nav-icon fas fa-laptop"></i>
+                    <p>
+                        Quản lý sản phẩm
+                    </p>
+                </a>
+            </li>
+
+            <li class="nav-header">ĐƠN HÀNG</li>
+
+            <li class="nav-item">
+                <a href="/Admin/Order" class="nav-link">
+                    <i class="nav-icon fas fa-th"></i>
+                    <p>
+                        Quản lý đơn hàng
+                    </p>
+                </a>
+            </li>
+
+            <li class="nav-header">TÀI KHOẢN</li>
+
+            <li class="nav-item">
+                <a href="/Admin/Role" class="nav-link">
+                    <i class="nav-icon fas fa-key"></i>
+                    <p>
+                        Quản lý quyền
+                    </p>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="/Admin/Account" class="nav-link">
+                    <i class="nav-icon fas fa-users"></i>
+                    <p>
+                        Quản lý tài khoản
+                    </p>
+                </a>
+            </li>
+
+            <li class="nav-header">HỆ THỐNG</li>
+
+            <li class="nav-item">
+                <a href="/Admin/SystemSettings" class="nav-link">
+                    <i class="nav-icon fas fa-cog"></i>
+                    <p>
+                        Cấu hình hệ thống
+                    </p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="javascript:document.getElementById('logOffForm').submit()" class="nav-link">
+                    <i class="nav-icon fas fa-sign-out-alt"></i>
+                    <p>
+                        Đăng xuất
+                    </p>
+                </a>
+            </li>
+
+
+        </ul>
+    </nav>
+    <!-- /.sidebar-menu -->
+</div>
+<!-- /.sidebar -->
+
+@if (Request.IsAuthenticated)
+{
+    <div style="display: none">
+        @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { @id = "logOffForm" }))
+        {
+            @Html.AntiForgeryToken()
+        }
+    </div>
+}

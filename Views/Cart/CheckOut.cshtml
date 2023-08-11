@@ -1,0 +1,175 @@
+﻿@model IEnumerable<PCShop.Models.EF.CartItems>
+@{
+    ViewBag.Title = "Thanh toán";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .error {
+        color: red;
+    }
+</style>
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/single_styles.css">
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/single_responsive.css">
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/categories_styles.css">
+<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/categories_responsive.css">
+<link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+
+<div class="container product_section_container">
+    <div class="row">
+        <div class="col product_section clearfix">
+
+            <!-- Breadcrumbs -->
+
+            <div class="breadcrumbs d-flex flex-row align-items-center">
+                <ul>
+                    <li><a href="/">Trang chủ</a></li>
+                    <li class="active"><a href="/cart"><i class="fa fa-angle-right" aria-hidden="true"></i>Thanh toán</a></li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="row">
+                <div class="col-6">
+                    @using (Ajax.BeginForm("CheckOut", "Cart", new AjaxOptions
+                    {
+                        HttpMethod = "POST",
+                        UpdateTargetId = "ShowCount",
+                        OnSuccess = "onSuc",
+                        OnFailure = "onFai",
+                        OnBegin = "onBegin"
+                    }, new { @Id = "paymentForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <h5>Thông tin khách hàng</h5>
+                        <div class="form-group">
+                            <h6>Họ và tên</h6>
+                            <input class="form-control" type="text" id="customerName" name="customerName" />
+                        </div>
+                        <div class="form-group">
+                            <h6>Số điện thoại liên hệ</h6>
+                            <input class="form-control" type="tel" id="phone" name="phone" />
+                        </div>
+                        <div class="form-group">
+                            <h6>Địa chỉ giao hàng</h6>
+                            <input class="form-control" type="text" id="address" name="address" />
+                        </div>
+                        <div class="form-group">
+                            <h6>Email (nhận hoá đơn điện tử)</h6>
+                            <input class="form-control" type="email" id="txtEmail" name="email" />
+                        </div>
+                        <div class="form-group" id="load_payment_form">
+                            <h6>Phương thức thanh toán:</h6>
+                            <h5>Cách 1: Chuyển hướng sang VNPAY chọn phương thức thanh toán</h5>
+                            <label><input type="radio" name="paymentType" value="0" /> Cổng thanh toán VNPayQR</label>
+                            <div class="row">
+                                <h5>Cách 2: Thanh toán trực tiếp qua ngân hàng</h5>
+                                <label><input type="radio" name="paymentType" value="1" /> Thanh toán qua ứng dụng hỗ trợ VNPayQR</label>
+                                <label><input type="radio" name="paymentType" value="2" /> Thẻ ngân hàng nội địa</label>
+                                <label><input type="radio" name="paymentType" value="3" /> Thẻ quốc tế</label>
+                            </div>
+                            <h5>Cách 3: Thanh toán khi nhận hàng</h5>
+                            <label><input type="radio" name="paymentType" value="10" checked /> Thanh toán khi nhận hàng</label>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" id="btnPayment" class="btn btn-block btn-danger text-bold">THANH TOÁN</button>
+                        </div>
+                        <div id="form_btnPay"></div>
+                    }
+                </div>
+                <div class="col-6">
+                    <h5>Sản phẩm</h5>
+                    @if (Model != null && Model.Any())
+                    {
+                        var tongtien = 0;
+                        <table class="table table-borderless">
+
+                            @foreach (var item in Model)
+                            {
+                                tongtien += item.totalPrice;
+                                <tr id="row_@item.Id">
+                                    <td><img src="@item.productImg" alt="@item.productName" width="100" height="100" /></td>
+                                    <td style="font-weight: bold">
+                                        <a href="/san-pham/@item.Alias-p@(item.Id)">@item.productName</a>
+                                    </td>
+                                    <td style="color: red; font-weight: bold">@PCShop.Models.Common.CommonHelper.ConvertMoney(@item.price)đ</td>
+                                    <td style="width: 100px">
+                                        <h5>x@(item.quantity)</h5>
+                                        @* <input type="number" id="quantity_value_@item.Id" data-id="@item.Id" class="form-control inputUpdate" value="@item.quantity" />*@
+                                    </td>
+                                    <td>@PCShop.Models.Common.CommonHelper.ConvertMoney(item.totalPrice)đ</td>
+                                </tr>
+                            }
+
+                        </table>
+                        <br />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Phí vận chuyển: </h5>
+                                <h4>Tổng tiền: </h4>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Miễn phí</h5>
+                                <h4 style="color: red;">@PCShop.Models.Common.CommonHelper.ConvertMoney(@tongtien)đ</h4>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <!-- END: Main Content -->
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script src="~/Content/assets/js/categories_custom.js"></script>
+    <script src="~/Content/assets/plugins/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+    <script src="~/Content/assets/js/categories_custom.js"></script>
+    <script src="~/Content/assets/js/single_custom.js"></script>
+    <script>
+        function onBegin() {
+            $('#form_btnPay').html('<h3>Vui lòng đợi...</h3>');
+            $('#btnPayment').attr("disabled", "disabled");
+        }
+        function onFai(rs) {
+            if (!rs.Success) {
+                alert('Mua hàng thất bại')
+            }
+        }
+        function onSuc(rs) {
+            //alert('Thanh cong');
+            if (rs.Code == 2) {
+                window.location.href = '/Cart/CheckOutSuccess';
+            } else {
+                location.href = rs.Url;
+            }
+        }
+        $(document).ready(function () {
+            $('#paymentForm').validate({
+                rules: {
+                    'customerName': {
+                        required: true
+                    },
+                    'phone': {
+                        required: true
+
+                    },
+                    'address': {
+                        required: true
+
+                    },
+                    'txtEmail': {
+                        required: true
+
+                    }
+                },
+                messages: {
+                    'customerName': 'Nhập tên khách hàng',
+                    'phone': 'Nhập số điện thoại liên hệ',
+                    'address': 'Nhập địa chỉ giao hàng',
+                    'txtEmail': 'Nhập Email để nhận hoá đơn điện tử'
+                }
+            })
+        })
+    </script>
+}

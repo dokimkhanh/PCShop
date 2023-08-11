@@ -1,0 +1,148 @@
+﻿@model IEnumerable<PCShop.Models.EF.SystemSettings>
+@{
+    ViewBag.Title = "Cài đặt hệ thống";
+}
+
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Cài đặt hệ thống</h1>
+            </div>
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Danh sách cài đặt</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                            @*<div class="row mb-2">
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="float-sm-left">
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-6">
+                                    <div class="float-sm-right">
+                                        <a type="button" href="/Admin/SystemSettings/Add" class="btn btn-block btn-primary">Thêm cài đặt mới</a>
+                                    </div>
+                                </div>
+                            </div>*@
+                            <div class="row">
+                                <div class="col-sm-12">
+
+                                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Tên cấu hình</th>
+                                                <th>Giá trị</th>
+                                                <th>Mô tả</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model != null && Model.Any())
+                                            {
+
+                                                foreach (var item in Model)
+                                                {
+                                                    <tr id="row_@item.id">
+                                                        <td class="dtr-control sorting_1">@item.id</td>
+                                                        <td>@item.settingKey</td>
+                                                        <td>@item.settingValue</td>
+                                                        <td>@item.settingDescription</td>
+                                                        <td>
+                                                            <a href="/Admin/SystemSettings/Edit/@item.id" class="btn btn-primary">Sửa</a>
+                                                            <a href="#" data-id="@item.id" class="btn btn-danger" id="btnDelete">Xoá</a>
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td>Chưa có dữ liệu</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Tên cấu hình</th>
+                                                <th>Giá trị</th>
+                                                <th>Mô tả</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /.container-fluid -->
+</section>
+<!-- /.content -->
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            $('body').on('click', '#btnDelete', function () {
+                var id = $(this).data('id');
+                //alert(id);
+                var conf = confirm('Bạn có chắc chắn muốn xoá cài đặt này?');
+                if (conf === true) {
+                    $.ajax({
+                        url: '/Admin/SystemSettings/Delete',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (rs) {
+                            if (rs.success) {
+                                $('#row_' + id).remove();
+                                toastr["success"]("Xoá cài đặt thành công", "Thông báo")
+
+                                toastr.options = {
+                                    "closeButton": true,
+                                    "debug": false,
+                                    "newestOnTop": false,
+                                    "progressBar": true,
+                                    "positionClass": "toast-top-right",
+                                    "preventDuplicates": false,
+                                    "onclick": null,
+                                    "showDuration": "300",
+                                    "hideDuration": "1000",
+                                    "timeOut": "5000",
+                                    "extendedTimeOut": "1000",
+                                    "showEasing": "swing",
+                                    "hideEasing": "linear",
+                                    "showMethod": "fadeIn",
+                                    "hideMethod": "fadeOut"
+                                }
+                            }
+                        }
+                    })
+                }
+            });
+        });
+    </script>
+}

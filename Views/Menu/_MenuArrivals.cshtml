@@ -1,0 +1,51 @@
+﻿@model IEnumerable<PCShop.Models.EF.Category>
+
+@if (Model != null && Model.Any())
+{
+    <div class="row">
+        <div class="col text-center">
+            <div class="section_title new_arrivals_title">
+                <h2>SẢN PHẨM MỚI</h2>
+            </div>
+        </div>
+    </div>
+    <div class="row align-items-center">
+        <div class="col text-center">
+            <div class="new_arrivals_sorting">
+                <ul class="arrivals_grid_sorting clearfix button-group filters-button-group">
+                    <li class="grid_sorting_button button d-flex flex-column justify-content-center align-items-center active is-checked" data-filter="*">Tất cả</li>
+                    @foreach (var item in Model)
+                    {
+                        <li class="grid_sorting_button button d-flex flex-column justify-content-center align-items-center" data-filter=".@item.alias">@item.title</li>
+                    }
+                    @*<li class="grid_sorting_button button d-flex flex-column justify-content-center align-items-center" data-filter=".accessories">accessories</li>
+                        <li class="grid_sorting_button button d-flex flex-column justify-content-center align-items-center" data-filter=".men">men's</li>*@
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="product-grid" data-isotope='{ "itemSelector": ".product-item", "layoutMode": "fitRows" }'>
+
+                <!-- Product 1 -->
+                @Html.Action("ItemByCategory", "Product")
+
+                <!-- Product 10 -->
+                @*<div class="product-item men">
+                        <div class="product product_filter">
+                            <div class="product_image">
+                                <img src="Content/assets/images/product_10.png" alt="">
+                            </div>
+                            <div class="favorite"></div>
+                            <div class="product_info">
+                                <h6 class="product_name"><a href="single.html">Pryma Headphones, Rose Gold & Grey</a></h6>
+                                <div class="product_price">$180.00</div>
+                            </div>
+                        </div>
+                        <div class="red_button add_to_cart_button"><a href="#">add to cart</a></div>
+                    </div>*@
+            </div>
+        </div>
+    </div>
+}
