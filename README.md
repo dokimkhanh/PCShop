@@ -1,53 +1,104 @@
+# PCShop
 
-# Welcome to PCShop Project
+## 📖 Overview
 
-PCShop is a project to support website selling technology products, gear, ...
+PCShop is an ASP.NET MVC application built with **Entity Framework 6**
+to manage products, customers, employees, and orders for a computer
+shop.\
+It includes authentication, role-based authorization, payment
+integration (VNPAY, QR, Banking), and admin/customer/employee
+dashboards.
 
+------------------------------------------------------------------------
 
+## 📑 Table of Contents
 
+-   [Features](#-features)
+-   [Requirements](#-requirements)
+-   [Setup Guide](#-setup-guide)
+-   [Database Setup](#-database-setup)
+-   [Email Configuration](#-email-configuration)
+-   [Payment Integration (VNPAY)](#-payment-integration-vnpay)
+-   [Run the Project](#-run-the-project)
+-   [License](#-license)
 
-## Features
+------------------------------------------------------------------------
 
-- Live previews
-- Payment (Banking, QR, ...)
-- Page for Employee, Admin, Customer
-- Multil upload product image
-- Fast performance
-- ...
+## 🚀 Features
 
-## Environment Variables
+-   Live previews
+-   Payment (Banking, QR, VNPAY)
+-   Pages for Employee, Admin, Customer
+-   Multi upload product images
+-   Fast performance
 
-To run this project, you will need to add the following environment variables to your Web.config file first !!!
+------------------------------------------------------------------------
 
-**DATABASE**:
-- `DB_CONNECT` = Your SQL Server Name (Ex: DESKTOP-8S25GLP\KHANH) or IP
-- `DB_NAME` = Database table Name
+## 📦 Requirements
 
-**EMAIL**:
+-   Visual Studio 2019+\
+-   .NET Framework 4.7.2\
+-   SQL Server Express (or higher)\
+-   Entity Framework 6
 
-You need turn off `account enhanced safe browsing` (https://myaccount.google.com/account-enhanced-safe-browsing)
+------------------------------------------------------------------------
 
-Next, create `app key password` (https://myaccount.google.com/apppasswords)
+## ⚙️ Setup Guide
 
-- `YOUR_MAIL` = Your google email address (ex: abc@gmail.com)
-- `YOUR_APP_KEY` = app_key_password
+### 1️⃣ Clone Repository
 
-**VNPAY SETTINGS (PAYMENT)**
-- For sandbox: 
-    1. Go to https://sandbox.vnpayment.vn/devreg and register
-    2. Go to Email and get `vnp_TmnCode` and `vnp_HashSecret`
-    3. Replace variables in Web.config
+``` bash
+git clone https://github.com/dokimkhanh/PCShop.git
+cd PCShop
+```
 
+### 2️⃣ Database Setup
 
+1.  Open **SQL Server Management Studio (SSMS)**\
 
+2.  Create an empty database named **PCShop**\
 
-## Demo
+3.  Update **Web.config** with your SQL connection:
 
-Live: http://levankhang-001-site1.ctempurl.com/
-- Admin account: adminx/123456
+    ``` xml
+    <connectionStrings>
+      <add name="DefaultConnection"
+           connectionString="Data Source=DESKTOP-YOURNAME\SQLEXPRESS;Initial Catalog=PCShop;Integrated Security=True"
+           providerName="System.Data.SqlClient" />
+    </connectionStrings>
+    ```
 
+4.  Open **Package Manager Console** in Visual Studio and run:
 
-## License
+    ``` powershell
+    Update-Database
+    ```
 
-[MIT](https://choosealicense.com/licenses/mit/)
+    > This will apply migrations and create all tables.
 
+### 3️⃣ Email Configuration
+
+To use Gmail SMTP, follow these steps:\
+1. Turn off **Enhanced Safe Browsing** → [Google
+Settings](https://myaccount.google.com/account-enhanced-safe-browsing)\
+2. Create an **App Password** → [Google App
+Passwords](https://myaccount.google.com/apppasswords)\
+3. Replace in **Web.config**:
+`xml    <appSettings>      <add key="YOUR_MAIL" value="yourmail@gmail.com" />      <add key="YOUR_APP_KEY" value="your_app_key_password" />    </appSettings>`
+
+### 4️⃣ Payment Integration (VNPAY)
+
+1.  Go to [VNPAY Sandbox](https://sandbox.vnpayment.vn/devreg) and
+    register\
+2.  Check your email for:
+    -   **vnp_TmnCode**
+    -   **vnp_HashSecret**\
+3.  Replace in **Web.config** variables for sandbox testing.
+
+### 5️⃣ Run the Project
+
+-   Open solution in **Visual Studio**
+-   Set **PCShop.Web** as startup project
+-   Press **F5** to run
+
+------------------------------------------------------------------------
