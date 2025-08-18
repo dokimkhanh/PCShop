@@ -102,3 +102,8 @@ Passwords](https://myaccount.google.com/apppasswords)\
 -   Press **F5** to run
 
 ------------------------------------------------------------------------
+
+## 📜 License
+
+[MIT](https://choosealicense.com/licenses/mit/)
+
