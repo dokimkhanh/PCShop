@@ -1,3 +1,10 @@
+<!-- License -->
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![.NET](https://img.shields.io/badge/.NET-Framework%204.8-blue)
+![GitHub issues](https://img.shields.io/github/issues/dokimkhanh/PCShop)
+![GitHub stars](https://img.shields.io/github/stars/dokimkhanh/PCShop?style=social)
+
+
 # PCShop
 
 ## 📖 Overview
