@@ -91,7 +91,12 @@ Settings](https://myaccount.google.com/account-enhanced-safe-browsing)\
 2. Create an **App Password** → [Google App
 Passwords](https://myaccount.google.com/apppasswords)\
 3. Replace in **Web.config**:
-`xml    <appSettings>      <add key="YOUR_MAIL" value="yourmail@gmail.com" />      <add key="YOUR_APP_KEY" value="your_app_key_password" />    </appSettings>`
+```
+<appSettings>
+   <add key="YOUR_MAIL" value="yourmail@gmail.com" />
+   <add key="YOUR_APP_KEY" value="your_app_key_password" />
+</appSettings>
+```
 
 ### 4️⃣ Payment Integration (VNPAY)
 
