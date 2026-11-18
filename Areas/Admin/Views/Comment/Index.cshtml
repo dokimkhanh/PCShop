@@ -11,6 +11,7 @@
     var totalThreads = ViewBag.TotalThreads != null ? (int)ViewBag.TotalThreads : 0;
     var unrepliedCount = ViewBag.UnrepliedCount != null ? (int)ViewBag.UnrepliedCount : 0;
     var repliedCount = ViewBag.RepliedCount != null ? (int)ViewBag.RepliedCount : 0;
+    var deletedCount = ViewBag.DeletedCount != null ? (int)ViewBag.DeletedCount : 0;
     var canManage = PermissionHelper.HasPermission(User, "Product.Manage");
 }
 
@@ -36,6 +37,10 @@
                     <a href="@Url.Action("Index", "Comment", new { status = "replied", txtSearch = currentSearch, productId = currentProductId })"
                        class="admin-tab-item @(currentStatus == "replied" ? "active" : "")">
                         Đã phản hồi <span class="ml-1 tabular-nums">(@repliedCount)</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Comment", new { status = "deleted", txtSearch = currentSearch, productId = currentProductId })"
+                       class="admin-tab-item @(currentStatus == "deleted" ? "active" : "")">
+                        Đã xoá <span class="ml-1 tabular-nums">(@deletedCount)</span>
                     </a>
                 </div>
             </div>
@@ -121,7 +126,13 @@
                                     <td style="vertical-align: top;">
                                         @if (item.IsDeleted)
                                         {
-                                            <div id="content_root_@item.Id" style="font-size: 13.5px; color: var(--muted); font-style: italic;">Bình luận đã bị xoá (giữ nguyên các phản hồi bên dưới)</div>
+                                            <div id="content_root_@item.Id" style="font-size: 13.5px; line-height: 1.55;">
+                                                <div style="color: var(--muted); font-style: italic;">Bình luận đã bị xoá</div>
+                                                @if (!string.IsNullOrWhiteSpace(item.Content) && !string.Equals(item.Content, "Bình luận đã bị xoá", System.StringComparison.Ordinal))
+                                                {
+                                                    <div style="margin-top: 4px; padding: 6px 10px; background: var(--background); border: 1px dashed var(--border); border-radius: 8px; color: var(--muted); font-size: 12.5px; white-space: pre-line; word-break: break-word;">@item.Content</div>
+                                                }
+                                            </div>
                                         }
                                         else
                                         {
@@ -143,12 +154,24 @@
                                                         </div>
                                                         @if (canManage)
                                                         {
-                                                            <button type="button" class="btn btn-link btn-sm p-0 text-danger btnDeleteReply" data-id="@r.Id" data-deleted="@(r.IsDeleted ? "1" : "0")" style="font-size: 11.5px;">@(r.IsDeleted ? "Xoá vĩnh viễn" : "Xoá")</button>
+                                                            <div class="d-flex align-items-center" id="reply_actions_@r.Id" style="gap: 10px;">
+                                                                @if (r.IsDeleted)
+                                                                {
+                                                                    <button type="button" class="btn btn-link btn-sm p-0 text-success btnRestoreReply" data-id="@r.Id" style="font-size: 11.5px;">Khôi phục</button>
+                                                                }
+                                                                <button type="button" class="btn btn-link btn-sm p-0 text-danger btnDeleteReply" data-id="@r.Id" data-deleted="@(r.IsDeleted ? "1" : "0")" style="font-size: 11.5px;">@(r.IsDeleted ? "Xoá vĩnh viễn" : "Xoá")</button>
+                                                            </div>
                                                         }
                                                     </div>
                                                     @if (r.IsDeleted)
                                                     {
-                                                        <div id="reply_content_@r.Id" style="font-size: 13px; color: var(--muted); font-style: italic;">Bình luận đã bị xoá</div>
+                                                        <div id="reply_content_@r.Id" style="font-size: 13px;">
+                                                            <div style="color: var(--muted); font-style: italic;">Bình luận đã bị xoá</div>
+                                                            @if (!string.IsNullOrWhiteSpace(r.Content) && !string.Equals(r.Content, "Bình luận đã bị xoá", System.StringComparison.Ordinal))
+                                                            {
+                                                                <div style="margin-top: 4px; padding: 5px 8px; background: var(--surface); border: 1px dashed var(--border); border-radius: 6px; color: var(--muted); font-size: 12px; white-space: pre-line; word-break: break-word;">@r.Content</div>
+                                                            }
+                                                        </div>
                                                     }
                                                     else
                                                     {
@@ -175,7 +198,7 @@
                                     <td style="vertical-align: top;">
                                         @if (item.IsDeleted)
                                         {
-                                            <span id="status_badge_@item.Id" class="badge-clean badge-clean-neutral">Đã xoá gốc</span>
+                                            <span id="status_badge_@item.Id" class="badge-clean badge-clean-neutral">Đã xoá</span>
                                         }
                                         else
                                         {
@@ -184,10 +207,16 @@
                                             </span>
                                         }
                                     </td>
-                                    <td class="text-right" style="vertical-align: top; white-space: nowrap;">
+                                    <td class="text-right" id="root_actions_@item.Id" style="vertical-align: top; white-space: nowrap;">
                                         @if (canManage)
                                         {
-                                            if (!item.IsDeleted)
+                                            if (item.IsDeleted)
+                                            {
+                                                <button type="button" class="btn-icon btnRestore" id="btn_restore_@item.Id" data-id="@item.Id" title="Khôi phục bình luận" aria-label="Khôi phục bình luận" style="color: #16a34a;">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                            }
+                                            else
                                             {
                                                 <button type="button" class="btn-icon btnOpenReplyBox" id="btn_reply_@item.Id" data-id="@item.Id" title="Phản hồi" aria-label="Phản hồi">
                                                     <i class="fas fa-reply"></i>
@@ -294,7 +323,9 @@
                             $left.append($('<span class="badge-clean badge-clean-danger ml-1" style="font-size: 10.5px;">Quản trị viên</span>'));
                             $left.append($('<span class="tabular-nums ml-2" style="color: var(--muted); font-size: 11.5px;"></span>').text(r.createdDate));
                             $top.append($left);
-                            $top.append($('<button type="button" class="btn btn-link btn-sm p-0 text-danger btnDeleteReply" data-deleted="0" style="font-size: 11.5px;">Xoá</button>').attr('data-id', r.id));
+                            var $actions = $('<div class="d-flex align-items-center" style="gap: 10px;"></div>').attr('id', 'reply_actions_' + r.id);
+                            $actions.append($('<button type="button" class="btn btn-link btn-sm p-0 text-danger btnDeleteReply" data-deleted="0" style="font-size: 11.5px;">Xoá</button>').attr('data-id', r.id));
+                            $top.append($actions);
                             $card.append($top);
                             $card.append($('<div style="font-size: 13px; white-space: pre-line; word-break: break-word;"></div>').attr('id', 'reply_content_' + r.id).text(r.content));
 
@@ -316,13 +347,24 @@
                 });
             });
 
+            function renderDeletedPreview($container, originalContent, isReply) {
+                $container.empty().removeAttr('style').css(isReply ? { fontSize: '13px' } : { fontSize: '13.5px', lineHeight: '1.55' });
+                $container.append('<div style="color: var(--muted); font-style: italic;">Bình luận đã bị xoá</div>');
+                if (originalContent && originalContent !== 'Bình luận đã bị xoá') {
+                    var previewStyle = isReply
+                        ? 'margin-top: 4px; padding: 5px 8px; background: var(--surface); border: 1px dashed var(--border); border-radius: 6px; color: var(--muted); font-size: 12px; white-space: pre-line; word-break: break-word;'
+                        : 'margin-top: 4px; padding: 6px 10px; background: var(--background); border: 1px dashed var(--border); border-radius: 8px; color: var(--muted); font-size: 12.5px; white-space: pre-line; word-break: break-word;';
+                    $container.append($('<div></div>').attr('style', previewStyle).text(originalContent));
+                }
+            }
+
             $('body').on('click', '.btnDelete', function () {
                 var $btn = $(this);
                 var id = $btn.data('id');
                 var isAlreadyDeleted = $btn.attr('data-deleted') === '1';
                 var promptMsg = isAlreadyDeleted
                     ? 'Xoá vĩnh viễn toàn bộ luồng bình luận này (bao gồm các phản hồi)?'
-                    : 'Xoá bình luận này? (Nếu đã có phản hồi bên dưới, bình luận gốc sẽ chuyển thành "Bình luận đã bị xoá" và giữ lại các phản hồi)';
+                    : 'Xoá mềm bình luận này? (Bình luận sẽ ẩn khỏi trang sản phẩm và có thể khôi phục lại tại đây)';
                 if (confirm(promptMsg)) {
                     $.ajax({
                         url: '/Admin/Comment/Delete',
@@ -331,22 +373,60 @@
                         success: function (res) {
                             if (res && res.success) {
                                 if (res.softDeleted) {
-                                    $('#content_root_' + id)
-                                        .css({ color: 'var(--muted)', fontStyle: 'italic' })
-                                        .text('Bình luận đã bị xoá (giữ nguyên các phản hồi bên dưới)');
+                                    renderDeletedPreview($('#content_root_' + id), res.originalContent, false);
                                     $('#status_badge_' + id)
                                         .removeClass('badge-clean-warning badge-clean-success')
                                         .addClass('badge-clean-neutral')
-                                        .text('Đã xoá gốc');
+                                        .text('Đã xoá');
                                     $('#btn_reply_' + id).remove();
-                                    $('#reply_box_' + id).remove();
+                                    $('#reply_box_' + id).addClass('d-none');
+                                    if ($('#btn_restore_' + id).length === 0) {
+                                        var $restoreBtn = $('<button type="button" class="btn-icon btnRestore" title="Khôi phục bình luận" aria-label="Khôi phục bình luận" style="color: #16a34a;"><i class="fas fa-undo"></i></button>')
+                                            .attr('id', 'btn_restore_' + id)
+                                            .attr('data-id', id);
+                                        $btn.before($restoreBtn).before(' ');
+                                    }
                                     $btn.attr('data-deleted', '1').attr('title', 'Xoá vĩnh viễn cả luồng');
-                                    toastr.success('Đã ẩn bình luận gốc và giữ nguyên các phản hồi');
+                                    toastr.success('Đã xoá mềm bình luận (có thể khôi phục)');
                                 } else {
                                     $('#row_' + id).remove();
                                     syncBulkDelete();
-                                    toastr.success('Đã xoá bình luận');
+                                    toastr.success('Đã xoá vĩnh viễn bình luận');
                                 }
+                            }
+                        }
+                    });
+                }
+            });
+
+            $('body').on('click', '.btnRestore', function () {
+                var $btn = $(this);
+                var id = $btn.data('id');
+                if (confirm('Khôi phục bình luận này hiển thị lại trên trang sản phẩm?')) {
+                    $.ajax({
+                        url: '/Admin/Comment/Restore',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (res) {
+                            if (res && res.success) {
+                                $('#content_root_' + id)
+                                    .empty()
+                                    .attr('style', 'white-space: pre-line; word-break: break-word; font-size: 13.5px; line-height: 1.55;')
+                                    .text(res.content || '');
+                                $('#status_badge_' + id)
+                                    .removeClass('badge-clean-neutral badge-clean-warning badge-clean-success')
+                                    .addClass(res.hasAdminReply ? 'badge-clean-success' : 'badge-clean-warning')
+                                    .text(res.hasAdminReply ? 'Đã phản hồi' : 'Chưa phản hồi');
+                                var $replyBtn = $('<button type="button" class="btn-icon btnOpenReplyBox" title="Phản hồi" aria-label="Phản hồi"><i class="fas fa-reply"></i></button>')
+                                    .attr('id', 'btn_reply_' + id)
+                                    .attr('data-id', id);
+                                $btn.replaceWith($replyBtn);
+                                $('#root_actions_' + id + ' .btnDelete')
+                                    .attr('data-deleted', '0')
+                                    .attr('title', 'Xoá bình luận');
+                                toastr.success('Đã khôi phục bình luận');
+                            } else {
+                                toastr.error((res && res.message) || 'Không thể khôi phục bình luận.');
                             }
                         }
                     });
@@ -359,7 +439,7 @@
                 var isAlreadyDeleted = $btn.attr('data-deleted') === '1';
                 var promptMsg = isAlreadyDeleted
                     ? 'Xoá vĩnh viễn phản hồi này?'
-                    : 'Xoá phản hồi này? (Phản hồi sẽ chuyển thành "Bình luận đã bị xoá")';
+                    : 'Xoá mềm phản hồi này? (Phản hồi sẽ chuyển thành "Bình luận đã bị xoá" và có thể khôi phục)';
                 if (confirm(promptMsg)) {
                     $.ajax({
                         url: '/Admin/Comment/Delete',
@@ -368,18 +448,50 @@
                         success: function (res) {
                             if (res && res.success) {
                                 if (res.softDeleted) {
-                                    $('#reply_content_' + id)
-                                        .css({ color: 'var(--muted)', fontStyle: 'italic' })
-                                        .text('Bình luận đã bị xoá');
+                                    renderDeletedPreview($('#reply_content_' + id), res.originalContent, true);
+                                    if ($('#reply_actions_' + id + ' .btnRestoreReply').length === 0) {
+                                        var $restoreReply = $('<button type="button" class="btn btn-link btn-sm p-0 text-success btnRestoreReply" style="font-size: 11.5px;">Khôi phục</button>')
+                                            .attr('data-id', id);
+                                        $btn.before($restoreReply);
+                                    }
                                     $btn.attr('data-deleted', '1').text('Xoá vĩnh viễn');
-                                    toastr.success('Đã ẩn phản hồi thành "Bình luận đã bị xoá"');
+                                    toastr.success('Đã xoá mềm phản hồi (có thể khôi phục)');
                                 } else {
                                     $('#reply_row_' + id).remove();
-                                    if (res.removedParentId) {
-                                        $('#row_' + res.removedParentId).remove();
-                                    }
                                     toastr.success('Đã xoá vĩnh viễn phản hồi');
                                 }
+                            }
+                        }
+                    });
+                }
+            });
+
+            $('body').on('click', '.btnRestoreReply', function () {
+                var $btn = $(this);
+                var id = $btn.data('id');
+                if (confirm('Khôi phục phản hồi này hiển thị lại trên trang sản phẩm?')) {
+                    $.ajax({
+                        url: '/Admin/Comment/Restore',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (res) {
+                            if (res && res.success) {
+                                $('#reply_content_' + id)
+                                    .empty()
+                                    .attr('style', 'font-size: 13px; white-space: pre-line; word-break: break-word;')
+                                    .text(res.content || '');
+                                var $delBtn = $('#reply_actions_' + id + ' .btnDeleteReply');
+                                $delBtn.attr('data-deleted', '0').text('Xoá');
+                                $btn.remove();
+                                if (res.parentId && !res.rootIsDeleted) {
+                                    $('#status_badge_' + res.parentId)
+                                        .removeClass('badge-clean-warning badge-clean-success')
+                                        .addClass(res.hasAdminReply ? 'badge-clean-success' : 'badge-clean-warning')
+                                        .text(res.hasAdminReply ? 'Đã phản hồi' : 'Chưa phản hồi');
+                                }
+                                toastr.success('Đã khôi phục phản hồi');
+                            } else {
+                                toastr.error((res && res.message) || 'Không thể khôi phục phản hồi.');
                             }
                         }
                     });

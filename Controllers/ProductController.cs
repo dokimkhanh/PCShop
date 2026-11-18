@@ -326,15 +326,14 @@ namespace PCShop.Controllers
             if (!comment.ParentId.HasValue)
             {
                 var hasReplies = dbContext.productComments.Any(c => c.ParentId == id);
-                if (hasReplies && !comment.IsDeleted)
+                if (!comment.IsDeleted)
                 {
                     comment.IsDeleted = true;
-                    comment.Content = "Bình luận đã bị xoá";
                     dbContext.SaveChanges();
                     return Json(new
                     {
                         success = true,
-                        softDeleted = true,
+                        softDeleted = hasReplies,
                         isReply = false,
                         removedCount = 1,
                         createdDate = comment.CreatedDate.ToString("dd/MM/yyyy HH:mm")
@@ -342,7 +341,7 @@ namespace PCShop.Controllers
                 }
 
                 var children = dbContext.productComments.Where(c => c.ParentId == id).ToList();
-                var removedCount = (comment.IsDeleted ? 0 : 1) + children.Count(c => !c.IsDeleted);
+                var removedCount = children.Count(c => !c.IsDeleted);
                 if (children.Count > 0)
                 {
                     dbContext.productComments.RemoveRange(children);
@@ -355,7 +354,6 @@ namespace PCShop.Controllers
             if (!comment.IsDeleted)
             {
                 comment.IsDeleted = true;
-                comment.Content = "Bình luận đã bị xoá";
                 dbContext.SaveChanges();
                 return Json(new
                 {
@@ -371,26 +369,12 @@ namespace PCShop.Controllers
             dbContext.productComments.Remove(comment);
             dbContext.SaveChanges();
 
-            int? removedParentId = null;
-            var parent = dbContext.productComments.Find(parentId);
-            if (parent != null && parent.IsDeleted)
-            {
-                var remainingReplies = dbContext.productComments.Any(c => c.ParentId == parentId);
-                if (!remainingReplies)
-                {
-                    dbContext.productComments.Remove(parent);
-                    dbContext.SaveChanges();
-                    removedParentId = parentId;
-                }
-            }
-
             return Json(new
             {
                 success = true,
                 softDeleted = false,
                 isReply = true,
-                removedCount = 0,
-                removedParentId = removedParentId
+                removedCount = 0
             });
         }
     }

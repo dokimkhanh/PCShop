@@ -52,15 +52,15 @@ namespace PCShop.Areas.Admin.Controllers
                     {
                         Comment = c,
                         Replies = replies,
-                        HasAdminReply = c.IsDeleted || c.IsAdminReply || replies.Any(r => r.IsAdminReply && !r.IsDeleted)
+                        HasAdminReply = c.IsAdminReply || replies.Any(r => r.IsAdminReply && !r.IsDeleted)
                     };
                 })
-                .Where(t => !t.Comment.IsDeleted || t.Replies.Count > 0)
                 .ToList();
 
             ViewBag.TotalThreads = threads.Count;
-            ViewBag.UnrepliedCount = threads.Count(t => !t.HasAdminReply);
-            ViewBag.RepliedCount = threads.Count(t => t.HasAdminReply);
+            ViewBag.UnrepliedCount = threads.Count(t => !t.Comment.IsDeleted && !t.HasAdminReply);
+            ViewBag.RepliedCount = threads.Count(t => !t.Comment.IsDeleted && t.HasAdminReply);
+            ViewBag.DeletedCount = threads.Count(t => t.Comment.IsDeleted || t.Replies.Any(r => r.IsDeleted));
 
             IEnumerable<CommentThreadViewModel> filtered = threads;
 
@@ -71,11 +71,15 @@ namespace PCShop.Areas.Admin.Controllers
 
             if (string.Equals(status, "unreplied", StringComparison.OrdinalIgnoreCase))
             {
-                filtered = filtered.Where(t => !t.HasAdminReply);
+                filtered = filtered.Where(t => !t.Comment.IsDeleted && !t.HasAdminReply);
             }
             else if (string.Equals(status, "replied", StringComparison.OrdinalIgnoreCase))
             {
-                filtered = filtered.Where(t => t.HasAdminReply);
+                filtered = filtered.Where(t => !t.Comment.IsDeleted && t.HasAdminReply);
+            }
+            else if (string.Equals(status, "deleted", StringComparison.OrdinalIgnoreCase))
+            {
+                filtered = filtered.Where(t => t.Comment.IsDeleted || t.Replies.Any(r => r.IsDeleted));
             }
 
             if (!string.IsNullOrWhiteSpace(txtSearch))
@@ -175,13 +179,17 @@ namespace PCShop.Areas.Admin.Controllers
 
             if (!comment.ParentId.HasValue)
             {
-                var hasReplies = _dbContext.productComments.Any(c => c.ParentId == id);
-                if (hasReplies && !comment.IsDeleted)
+                if (!comment.IsDeleted)
                 {
                     comment.IsDeleted = true;
-                    comment.Content = "Bình luận đã bị xoá";
                     _dbContext.SaveChanges();
-                    return Json(new { success = true, softDeleted = true, isReply = false });
+                    return Json(new
+                    {
+                        success = true,
+                        softDeleted = true,
+                        isReply = false,
+                        originalContent = comment.Content
+                    });
                 }
 
                 var children = _dbContext.productComments.Where(c => c.ParentId == id).ToList();
@@ -197,29 +205,53 @@ namespace PCShop.Areas.Admin.Controllers
             if (!comment.IsDeleted)
             {
                 comment.IsDeleted = true;
-                comment.Content = "Bình luận đã bị xoá";
                 _dbContext.SaveChanges();
-                return Json(new { success = true, softDeleted = true, isReply = true });
+                return Json(new
+                {
+                    success = true,
+                    softDeleted = true,
+                    isReply = true,
+                    originalContent = comment.Content
+                });
             }
 
-            var parentId = comment.ParentId.Value;
             _dbContext.productComments.Remove(comment);
             _dbContext.SaveChanges();
 
-            int? removedParentId = null;
-            var parent = _dbContext.productComments.Find(parentId);
-            if (parent != null && parent.IsDeleted)
+            return Json(new { success = true, softDeleted = false, isReply = true });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryTokenAjax]
+        [RequirePermission("Product.Manage")]
+        public ActionResult Restore(int id)
+        {
+            var comment = _dbContext.productComments.Find(id);
+            if (comment == null)
             {
-                var remainingReplies = _dbContext.productComments.Any(c => c.ParentId == parentId);
-                if (!remainingReplies)
-                {
-                    _dbContext.productComments.Remove(parent);
-                    _dbContext.SaveChanges();
-                    removedParentId = parentId;
-                }
+                return Json(new { success = false, message = "Không tìm thấy bình luận." });
+            }
+            if (!comment.IsDeleted)
+            {
+                return Json(new { success = false, message = "Bình luận này chưa bị xoá." });
             }
 
-            return Json(new { success = true, softDeleted = false, isReply = true, removedParentId = removedParentId });
+            comment.IsDeleted = false;
+            _dbContext.SaveChanges();
+
+            var rootId = comment.ParentId.HasValue ? comment.ParentId.Value : comment.Id;
+            var root = rootId == comment.Id ? comment : _dbContext.productComments.AsNoTracking().FirstOrDefault(c => c.Id == rootId);
+            var hasAdminReply = root != null && (root.IsAdminReply || _dbContext.productComments.Any(c => c.ParentId == rootId && c.IsAdminReply && !c.IsDeleted));
+
+            return Json(new
+            {
+                success = true,
+                isReply = comment.ParentId.HasValue,
+                parentId = comment.ParentId,
+                content = comment.Content,
+                hasAdminReply = hasAdminReply,
+                rootIsDeleted = root != null && root.IsDeleted
+            });
         }
 
         [HttpPost]
