@@ -1,4 +1,5 @@
 using System;
+using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
@@ -9,6 +10,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using PCShop.Models;
+using PCShop.Models.Common;
 
 namespace PCShop.Controllers
 {
@@ -491,6 +493,98 @@ namespace PCShop.Controllers
             model.Orders = LoadUserOrders(user);
             model.UserName = user.UserName;
             return View(model);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public ActionResult OrderDetail(int id)
+        {
+            var userId = User.Identity.GetUserId();
+            var user = UserManager.FindById(userId);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập lại." }, JsonRequestBehavior.AllowGet);
+            }
+
+            var userName = (user.UserName ?? string.Empty).Trim();
+            var email = (user.Email ?? string.Empty).Trim();
+            var phone = (user.Phone ?? string.Empty).Trim();
+
+            using (var db = new ApplicationDbContext())
+            {
+                var order = db.orders
+                    .Include(x => x.orderDetails.Select(d => d.product.productImages))
+                    .AsNoTracking()
+                    .FirstOrDefault(x => x.Id == id);
+
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng." }, JsonRequestBehavior.AllowGet);
+                }
+
+                var isOwner =
+                    (!string.IsNullOrEmpty(userName) && string.Equals(order.createdBy, userName, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(email) && string.Equals(order.email, email, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(phone) && string.Equals(order.phone, phone, StringComparison.OrdinalIgnoreCase));
+
+                if (!isOwner)
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền xem đơn hàng này." }, JsonRequestBehavior.AllowGet);
+                }
+
+                var statusText = order.paymentStatus == 1
+                    ? "Đã thanh toán"
+                    : (order.paymentStatus == 2 ? "Đã hủy" : "Chưa thanh toán");
+
+                var items = (order.orderDetails ?? new System.Collections.Generic.List<PCShop.Models.EF.OrderDetail>())
+                    .Select(d =>
+                    {
+                        var prod = d.product;
+                        var img = string.Empty;
+                        if (prod != null)
+                        {
+                            var defImg = prod.productImages != null
+                                ? (prod.productImages.FirstOrDefault(x => x.isDefault) ?? prod.productImages.FirstOrDefault())
+                                : null;
+                            img = defImg != null && !string.IsNullOrWhiteSpace(defImg.image)
+                                ? defImg.image
+                                : (prod.image ?? string.Empty);
+                        }
+                        var lineTotal = (long)d.price * d.quantity;
+                        return new
+                        {
+                            productId = d.productID,
+                            title = prod != null ? prod.title : ("Sản phẩm #" + d.productID),
+                            url = prod != null && !string.IsNullOrWhiteSpace(prod.alias) ? ("/san-pham/" + prod.alias + "-p" + prod.id) : string.Empty,
+                            image = img,
+                            priceText = CommonHelper.ConvertMoney(d.price) + " đ",
+                            quantity = d.quantity,
+                            lineTotalText = CommonHelper.ConvertMoney(lineTotal) + " đ"
+                        };
+                    })
+                    .ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    order = new
+                    {
+                        id = order.Id,
+                        code = order.code ?? string.Empty,
+                        createdDate = order.createdDate.ToString("dd/MM/yyyy HH:mm"),
+                        customerName = order.customerName ?? string.Empty,
+                        phone = order.phone ?? string.Empty,
+                        email = order.email ?? string.Empty,
+                        address = order.address ?? string.Empty,
+                        paymentTypeText = PaymentConfigHelper.GetMethodTitle(order.paymentType),
+                        paymentStatus = order.paymentStatus,
+                        paymentStatusText = statusText,
+                        totalQuantity = order.quantity > 0 ? order.quantity : items.Sum(x => x.quantity),
+                        totalAmountText = CommonHelper.ConvertMoney(order.totalAmount) + " đ",
+                        items = items
+                    }
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         protected override void Dispose(bool disposing)

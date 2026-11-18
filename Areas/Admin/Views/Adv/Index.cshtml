@@ -1,8 +1,343 @@
-﻿
+@model List<PCShop.Models.EF.Adv>
+@using PCShop.Models.EF
 @{
-    ViewBag.Title = "Quảng cáo";
+    ViewBag.Title = "Banner trang chủ";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var banners = Model ?? new List<Adv>();
+    var canManage = ViewBag.CanManage != null && (bool)ViewBag.CanManage;
+    var activeCount = banners.Count(x => x.type == 1);
 }
 
-<h2>Index</h2>
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 12px;">
+            <div>
+                <h1 class="mb-1">Banner trang chủ</h1>
+                <div style="font-size: 13px; color: var(--muted);">Quản lý slider banner hiển thị đầu trang chủ. Kích thước khuyên dùng: <strong>2856 × 1087 px</strong> (tỷ lệ ~2.63:1) để hiển thị trọn vẹn không bị cắt hình.</div>
+            </div>
+            <div class="d-flex align-items-center" style="gap: 10px;">
+                <span id="advActiveBadge" class="badge-clean @(activeCount > 0 ? "badge-clean-success" : "badge-clean-neutral") tabular-nums" style="padding: 6px 12px;">
+                    @activeCount / @banners.Count đang hiển thị
+                </span>
+                @if (canManage)
+                {
+                    <button type="button" id="btnAddBanner" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        <span>Thêm banner</span>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</section>
 
+<section class="content">
+    <div class="container-fluid">
+        @if (TempData["Success"] != null)
+        {
+            <div id="advToastSuccess" data-msg="@TempData["Success"]" style="display: none;"></div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div id="advToastError" data-msg="@TempData["Error"]" style="display: none;"></div>
+        }
+
+        <div class="card">
+            @if (banners.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 230px;">Hình ảnh</th>
+                                <th>Tiêu đề &amp; Liên kết</th>
+                                <th style="width: 150px;">Trạng thái</th>
+                                @if (canManage)
+                                {
+                                    <th class="text-right" style="width: 110px;">Thao tác</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in banners)
+                            {
+                                var isOn = item.type == 1;
+                                <tr id="adv_row_@item.id">
+                                    <td style="vertical-align: middle;">
+                                        <div style="width: 204px; aspect-ratio: 2856 / 1087; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-strong); background: var(--background);">
+                                            <img src="@item.image" alt="@item.title" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+                                        </div>
+                                    </td>
+                                    <td style="vertical-align: middle;">
+                                        <div class="admin-item-title">@(string.IsNullOrWhiteSpace(item.title) ? "Banner #" + item.id : item.title)</div>
+                                        <div class="admin-item-sub">
+                                            Liên kết: <code>@(string.IsNullOrWhiteSpace(item.link) ? "/san-pham" : item.link)</code>
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(item.description))
+                                        {
+                                            <div class="admin-item-sub">@item.description</div>
+                                        }
+                                    </td>
+                                    <td style="vertical-align: middle;">
+                                        <div class="d-flex align-items-center" style="gap: 10px;">
+                                            <label class="pm-switch @(canManage ? "" : "is-disabled")">
+                                                <input type="checkbox" class="adv-toggle" data-id="@item.id" @(isOn ? "checked" : "") @(canManage ? "" : "disabled") />
+                                                <span class="pm-switch-track">
+                                                    <span class="pm-switch-thumb"></span>
+                                                </span>
+                                            </label>
+                                            <span id="adv_badge_@item.id" class="badge-clean @(isOn ? "badge-clean-success" : "badge-clean-neutral")">
+                                                @(isOn ? "Hiển thị" : "Đang ẩn")
+                                            </span>
+                                        </div>
+                                    </td>
+                                    @if (canManage)
+                                    {
+                                        <td class="text-right" style="vertical-align: middle; white-space: nowrap;">
+                                            <button type="button"
+                                                    class="btn-icon adv-btn-edit"
+                                                    data-id="@item.id"
+                                                    data-title="@item.title"
+                                                    data-description="@item.description"
+                                                    data-image="@item.image"
+                                                    data-link="@item.link"
+                                                    data-active="@(isOn ? "true" : "false")"
+                                                    title="Sửa"
+                                                    aria-label="Sửa">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <button type="button" class="btn-icon btn-icon-danger adv-btn-delete" data-id="@item.id" title="Xoá" aria-label="Xoá">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas fa-images"></i></div>
+                    <div class="empty-state-title">Chưa có banner nào</div>
+                    <div style="font-size: 13px; margin-bottom: 14px;">Thêm nhiều banner để trang chủ tự động chạy dạng slider.</div>
+                    @if (canManage)
+                    {
+                        <button type="button" class="btn btn-primary btn-sm" id="btnAddBannerEmpty">Thêm banner đầu tiên</button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@if (canManage)
+{
+    <div class="modal fade" id="advModal" tabindex="-1" role="dialog" aria-labelledby="advModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="advModalTitle">Thêm banner mới</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                @using (Html.BeginForm("Save", "Adv", FormMethod.Post, new { @id = "advForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="advId" name="id" value="0" />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <div id="advPreviewBox" style="width: 100%; aspect-ratio: 2856 / 1087; border-radius: 12px; border: 1px dashed var(--border-strong); background: var(--background); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                <img id="advPreviewImg" src="" alt="Xem trước banner" style="width: 100%; height: 100%; object-fit: cover; display: none;" />
+                                <div id="advPreviewPlaceholder" class="text-center" style="color: var(--muted); font-size: 13px;">
+                                    <i class="fas fa-image d-block mb-1" style="font-size: 24px; color: #c4c4cc;"></i>
+                                    Khung xem trước tỷ lệ chuẩn 2856 × 1087 px
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="advImage">Hình ảnh banner <span class="text-danger">*</span></label>
+                            <div class="d-flex flex-wrap" style="gap: 8px;">
+                                <input type="text" id="advImage" name="image" class="form-control flex-grow-1" style="min-width: 240px; width: auto;" placeholder="/Uploads/images/... hoặc tải ảnh từ máy" required />
+                                <input type="file" id="advFileInput" accept="image/*" style="display: none;" />
+                                <button type="button" id="btnUploadAdvImg" class="btn btn-default">
+                                    <i class="fas fa-upload"></i>
+                                    <span>Tải ảnh lên</span>
+                                </button>
+                            </div>
+                            <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Hỗ trợ JPG, PNG, WEBP (tối đa 10 MB). Khuyên dùng ảnh ngang tỷ lệ 2856 × 1087 px.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="advTitle">Tiêu đề / Mô tả ảnh (alt)</label>
+                                    <input type="text" id="advTitle" name="title" class="form-control" maxlength="200" placeholder="VD: Khuyến mãi PC Gaming tháng 11" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="advLink">Liên kết khi bấm vào banner</label>
+                                    <input type="text" id="advLink" name="link" class="form-control" maxlength="300" placeholder="/san-pham hoặc /danh-muc/pc-gaming/2" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-0">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="advIsActive" name="isActive" value="true" checked />
+                                <label class="custom-control-label" for="advIsActive" style="font-weight: 400;">Hiển thị ngay trên slider trang chủ</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Huỷ</button>
+                        <button type="submit" class="btn btn-primary">Lưu banner</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@section scripts {
+    <script>
+        $(function () {
+            var sMsg = $('#advToastSuccess').data('msg');
+            if (sMsg && window.toastr) { toastr.success(sMsg); }
+            var eMsg = $('#advToastError').data('msg');
+            if (eMsg && window.toastr) { toastr.error(eMsg); }
+
+            function syncPreview(url) {
+                var clean = $.trim(url || '');
+                if (clean) {
+                    $('#advPreviewImg').attr('src', clean).show();
+                    $('#advPreviewPlaceholder').hide();
+                } else {
+                    $('#advPreviewImg').attr('src', '').hide();
+                    $('#advPreviewPlaceholder').show();
+                }
+            }
+
+            function openModal(data) {
+                $('#advModalTitle').text(data && data.id ? 'Chỉnh sửa banner' : 'Thêm banner mới');
+                $('#advId').val(data && data.id ? data.id : 0);
+                $('#advTitle').val(data && data.title ? data.title : '');
+                $('#advImage').val(data && data.image ? data.image : '');
+                $('#advLink').val(data && data.link ? data.link : '/san-pham');
+                $('#advIsActive').prop('checked', !data || data.active !== false);
+                syncPreview(data && data.image ? data.image : '');
+                $('#advModal').modal('show');
+            }
+
+            $('#btnAddBanner, #btnAddBannerEmpty').on('click', function () {
+                openModal(null);
+            });
+
+            $(document).on('click', '.adv-btn-edit', function () {
+                var $btn = $(this);
+                openModal({
+                    id: $btn.data('id'),
+                    title: $btn.data('title'),
+                    image: $btn.data('image'),
+                    link: $btn.data('link'),
+                    active: $btn.data('active') === true || $btn.data('active') === 'true'
+                });
+            });
+
+            $('#advImage').on('input change', function () {
+                syncPreview($(this).val());
+            });
+
+            $('#btnUploadAdvImg').on('click', function () {
+                $('#advFileInput').trigger('click');
+            });
+
+            $('#advFileInput').on('change', function () {
+                var files = this.files;
+                if (!files || files.length === 0) { return; }
+                var fd = new FormData();
+                fd.append('files', files[0]);
+                var $btn = $('#btnUploadAdvImg');
+                $btn.prop('disabled', true);
+                $.ajax({
+                    url: '/Admin/Upload/Image',
+                    type: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        if (res && res.success && res.urls && res.urls.length > 0) {
+                            $('#advImage').val(res.urls[0]);
+                            syncPreview(res.urls[0]);
+                            if (window.toastr) { toastr.success('Đã tải ảnh banner lên.'); }
+                        } else if (window.toastr) {
+                            toastr.error((res && res.message) || 'Không thể tải ảnh.');
+                        }
+                    },
+                    error: function () {
+                        if (window.toastr) { toastr.error('Lỗi kết nối khi tải ảnh.'); }
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false);
+                        $('#advFileInput').val('');
+                    }
+                });
+            });
+
+            function updateSummary() {
+                var total = $('.adv-toggle').length;
+                var active = $('.adv-toggle:checked').length;
+                $('#advActiveBadge')
+                    .toggleClass('badge-clean-success', active > 0)
+                    .toggleClass('badge-clean-neutral', active === 0)
+                    .text(active + ' / ' + total + ' đang hiển thị');
+            }
+
+            $(document).on('change', '.adv-toggle', function () {
+                var $cb = $(this);
+                var id = $cb.data('id');
+                var next = $cb.is(':checked');
+                $cb.prop('disabled', true);
+                $.post('/Admin/Adv/Toggle', { id: id, active: next })
+                    .done(function (res) {
+                        if (res && res.success) {
+                            $('#adv_badge_' + id)
+                                .toggleClass('badge-clean-success', next)
+                                .toggleClass('badge-clean-neutral', !next)
+                                .text(next ? 'Hiển thị' : 'Đang ẩn');
+                            updateSummary();
+                            if (window.toastr) { toastr.success(next ? 'Đã bật banner' : 'Đã ẩn banner'); }
+                        } else {
+                            $cb.prop('checked', !next);
+                        }
+                    })
+                    .fail(function () {
+                        $cb.prop('checked', !next);
+                        if (window.toastr) { toastr.error('Lỗi kết nối khi cập nhật.'); }
+                    })
+                    .always(function () {
+                        $cb.prop('disabled', false);
+                    });
+            });
+
+            $(document).on('click', '.adv-btn-delete', function () {
+                var id = $(this).data('id');
+                if (!confirm('Bạn có chắc chắn muốn xoá banner này không?')) { return; }
+                $.post('/Admin/Adv/Delete', { id: id })
+                    .done(function (res) {
+                        if (res && res.success) {
+                            $('#adv_row_' + id).remove();
+                            updateSummary();
+                            if (window.toastr) { toastr.success('Đã xoá banner.'); }
+                            if ($('.adv-toggle').length === 0) { location.reload(); }
+                        }
+                    });
+            });
+        });
+    </script>
+}

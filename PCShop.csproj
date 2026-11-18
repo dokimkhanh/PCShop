@@ -350,6 +350,7 @@
     <Compile Include="Models\RolePermissionViewModels.cs" />
     <Compile Include="Models\Common\CommonHelper.cs" />
     <Compile Include="Models\Common\MailHelper.cs" />
+    <Compile Include="Models\Common\BannerHelper.cs" />
     <Compile Include="Models\Common\CategoryMenuHelper.cs" />
     <Compile Include="Models\Common\PaymentConfigHelper.cs" />
     <Compile Include="Models\Common\SettingsHelper.cs" />

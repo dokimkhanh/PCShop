@@ -1,4 +1,4 @@
-﻿@using PCShop.Models.Common
+@using PCShop.Models.Common
 @{
     var currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
     var siteTitle = SettingsHelper.GetValue("SettingTitle");
@@ -90,6 +90,15 @@
                         <a href="/Admin/Comment" class="nav-link @(currentController.Equals("Comment", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
                             <i class="nav-icon fas fa-comments"></i>
                             <p>Bình luận</p>
+                        </a>
+                    </li>
+                }
+                if (canSetting)
+                {
+                    <li class="nav-item">
+                        <a href="/Admin/Adv" class="nav-link @(currentController.Equals("Adv", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                            <i class="nav-icon fas fa-images"></i>
+                            <p>Banner trang chủ</p>
                         </a>
                     </li>
                 }

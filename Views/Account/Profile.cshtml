@@ -114,13 +114,18 @@
                                     <th style="border-top: 0;">Ngày đặt</th>
                                     <th style="border-top: 0;" class="text-right">Tổng tiền</th>
                                     <th style="border-top: 0;" class="text-right">Trạng thái</th>
+                                    <th style="border-top: 0; width: 92px;" class="text-right"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var order in orders)
                                 {
                                     <tr>
-                                        <td style="font-weight: 600; vertical-align: middle;">@order.code</td>
+                                        <td style="font-weight: 600; vertical-align: middle;">
+                                            <button type="button" class="btn-link p-0 border-0 bg-transparent sf-open-order" data-id="@order.Id" style="font-weight: 600; color: var(--sf-primary); cursor: pointer;">
+                                                #@order.code
+                                            </button>
+                                        </td>
                                         <td class="sf-tabular" style="color: var(--sf-muted); vertical-align: middle;">@order.createdDate.ToString("dd/MM/yyyy HH:mm")</td>
                                         <td class="text-right sf-tabular" style="font-weight: 600; vertical-align: middle;">@PCShop.Models.Common.CommonHelper.ConvertMoney(order.totalAmount) đ</td>
                                         <td class="text-right" style="vertical-align: middle;">
@@ -136,6 +141,11 @@
                                             {
                                                 <span class="sf-status-pill sf-status-danger">Đã hủy</span>
                                             }
+                                        </td>
+                                        <td class="text-right" style="vertical-align: middle;">
+                                            <button type="button" class="sf-btn-outline sf-open-order" data-id="@order.Id" style="min-height: 30px; padding: 0 10px; font-size: 12.5px;">
+                                                Chi tiết
+                                            </button>
                                         </td>
                                     </tr>
                                 }
@@ -156,3 +166,164 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="sfOrderDetailModal" tabindex="-1" role="dialog" aria-labelledby="sfOrderDetailTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content" style="border-radius: 16px; border: 1px solid var(--sf-border-strong); overflow: hidden;">
+            <div class="modal-header align-items-center" style="border-bottom: 1px solid var(--sf-border); padding: 16px 22px;">
+                <div class="d-flex flex-wrap align-items-center" style="gap: 10px;">
+                    <h5 class="modal-title mb-0" id="sfOrderDetailTitle" style="font-size: 17px; font-weight: 700;">Chi tiết đơn hàng</h5>
+                    <span id="sfOdStatusPill"></span>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 20px 22px;">
+                <div id="sfOdLoading" class="text-center py-5" style="color: var(--sf-muted); font-size: 13.5px;">
+                    <i class="fa fa-spinner fa-spin mr-1" aria-hidden="true"></i> Đang tải chi tiết đơn hàng...
+                </div>
+                <div id="sfOdError" class="alert alert-danger mb-0" style="display: none; border-radius: 10px; font-size: 13.5px;"></div>
+                <div id="sfOdContent" style="display: none;">
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <div class="p-3 h-100" style="background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: 12px; font-size: 13px; line-height: 1.7;">
+                                <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sf-muted); margin-bottom: 6px;">Thông tin giao hàng</div>
+                                <div id="sfOdName" style="font-weight: 600; color: var(--sf-fg);"></div>
+                                <div id="sfOdPhone" style="color: var(--sf-fg);"></div>
+                                <div id="sfOdEmail" style="color: var(--sf-muted);"></div>
+                                <div id="sfOdAddress" style="color: var(--sf-muted); margin-top: 2px;"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 h-100" style="background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: 12px; font-size: 13px; line-height: 1.7;">
+                                <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sf-muted); margin-bottom: 6px;">Thông tin đơn hàng</div>
+                                <div>Thời gian đặt: <strong id="sfOdDate" class="sf-tabular" style="color: var(--sf-fg);"></strong></div>
+                                <div>Thanh toán: <strong id="sfOdPayType" style="color: var(--sf-fg);"></strong></div>
+                                <div>Số lượng: <strong id="sfOdQty" class="sf-tabular" style="color: var(--sf-fg);"></strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sf-muted); padding-bottom: 8px; border-bottom: 1px solid var(--sf-border);">
+                        Sản phẩm đã đặt
+                    </div>
+                    <div id="sfOdItems" class="mb-3"></div>
+
+                    <div class="pt-3" style="border-top: 1px solid var(--sf-border-strong);">
+                        <div class="d-flex justify-content-between mb-1" style="font-size: 13.5px;">
+                            <span style="color: var(--sf-muted);">Phí vận chuyển</span>
+                            <span style="color: var(--sf-success); font-weight: 600;">Miễn phí</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-baseline mt-2">
+                            <span style="font-size: 15px; font-weight: 700;">Tổng thanh toán</span>
+                            <span id="sfOdTotal" class="sf-tabular" style="font-size: 20px; font-weight: 700; color: var(--sf-primary);"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--sf-border); padding: 12px 22px;">
+                <button type="button" class="sf-btn-outline" data-dismiss="modal" style="min-height: 36px; padding: 0 16px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(function () {
+            var fallbackImg = '@Url.Content("~/Content/assets/images/product_1.png")';
+
+            function renderStatusPill(status, text) {
+                var cls = status === 1 ? 'sf-status-success' : (status === 2 ? 'sf-status-danger' : 'sf-status-warning');
+                return $('<span>').addClass('sf-status-pill ' + cls).text(text);
+            }
+
+            $(document).on('click', '.sf-open-order', function () {
+                var id = $(this).data('id');
+                $('#sfOrderDetailTitle').text('Chi tiết đơn hàng');
+                $('#sfOdStatusPill').empty();
+                $('#sfOdError').hide().text('');
+                $('#sfOdContent').hide();
+                $('#sfOdLoading').show();
+                $('#sfOrderDetailModal').modal('show');
+
+                $.getJSON('/Account/OrderDetail', { id: id })
+                    .done(function (res) {
+                        $('#sfOdLoading').hide();
+                        if (!res || !res.success || !res.order) {
+                            $('#sfOdError').text((res && res.message) || 'Không thể tải chi tiết đơn hàng.').show();
+                            return;
+                        }
+                        var o = res.order;
+                        $('#sfOrderDetailTitle').text('Đơn hàng #' + o.code);
+                        $('#sfOdStatusPill').empty().append(renderStatusPill(o.paymentStatus, o.paymentStatusText));
+                        $('#sfOdName').text(o.customerName);
+                        $('#sfOdPhone').text(o.phone);
+                        $('#sfOdEmail').text(o.email);
+                        $('#sfOdAddress').text(o.address);
+                        $('#sfOdDate').text(o.createdDate);
+                        $('#sfOdPayType').text(o.paymentTypeText);
+                        $('#sfOdQty').text(o.totalQuantity + ' sản phẩm');
+                        $('#sfOdTotal').text(o.totalAmountText);
+
+                        var $list = $('#sfOdItems').empty();
+                        if (o.items && o.items.length > 0) {
+                            $.each(o.items, function (_, item) {
+                                var $row = $('<div>').addClass('d-flex align-items-center py-3').css({
+                                    gap: '12px',
+                                    borderBottom: '1px solid var(--sf-border)'
+                                });
+                                var $img = $('<img>')
+                                    .attr('src', item.image || fallbackImg)
+                                    .attr('alt', item.title)
+                                    .on('error', function () { $(this).off('error').attr('src', fallbackImg); })
+                                    .css({
+                                        width: '54px',
+                                        height: '54px',
+                                        objectFit: 'contain',
+                                        padding: '4px',
+                                        background: '#fafafa',
+                                        border: '1px solid var(--sf-border-strong)',
+                                        borderRadius: '10px',
+                                        flexShrink: 0
+                                    });
+                                var $info = $('<div>').addClass('flex-grow-1').css('min-width', 0);
+                                var $titleEl = item.url
+                                    ? $('<a>').attr('href', item.url).text(item.title).css({
+                                        fontSize: '13.5px',
+                                        fontWeight: 600,
+                                        color: 'var(--sf-fg)',
+                                        textDecoration: 'none',
+                                        display: 'block'
+                                    })
+                                    : $('<div>').text(item.title).css({ fontSize: '13.5px', fontWeight: 600, color: 'var(--sf-fg)' });
+                                var $sub = $('<div>').addClass('sf-tabular').text('SL: ' + item.quantity + ' × ' + item.priceText).css({
+                                    fontSize: '12.5px',
+                                    color: 'var(--sf-muted)',
+                                    marginTop: '2px'
+                                });
+                                $info.append($titleEl, $sub);
+
+                                var $line = $('<div>').addClass('sf-tabular text-right').text(item.lineTotalText).css({
+                                    fontSize: '13.5px',
+                                    fontWeight: 600,
+                                    whiteSpace: 'nowrap'
+                                });
+                                $row.append($img, $info, $line);
+                                $list.append($row);
+                            });
+                        } else {
+                            $list.append($('<div>').addClass('py-3 text-center').css({ color: 'var(--sf-muted)', fontSize: '13px' }).text('Không có chi tiết sản phẩm.'));
+                        }
+
+                        $('#sfOdContent').show();
+                    })
+                    .fail(function () {
+                        $('#sfOdLoading').hide();
+                        $('#sfOdError').text('Lỗi kết nối khi tải chi tiết đơn hàng.').show();
+                    });
+            });
+        });
+    </script>
+}

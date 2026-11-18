@@ -35,7 +35,7 @@
                 var cat = $(this).data('cat');
                 var rootCat = $(this).data('root-cat');
                 var match = (selected === 'all' || cat === selected || rootCat === selected);
-                if (match && (selected !== 'all' || shown < 12)) {
+                if (match && (selected !== 'all' || shown < 15)) {
                     $(this).show();
                     shown++;
                 } else {

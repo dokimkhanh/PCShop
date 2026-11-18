@@ -1,13 +1,43 @@
-﻿@using PCShop.Models.Common
+@using PCShop.Models.Common
 @{
     ViewBag.Title = "Trang chủ";
     var openHours = SettingsHelper.GetValue("SettingOpenHours");
     if (string.IsNullOrWhiteSpace(openHours)) { openHours = "08:30 - 21:00 mỗi ngày"; }
+    var banners = BannerHelper.GetActiveBanners();
+    var hasMultipleBanners = banners.Count > 1;
 }
 
 <section class="pt-4 pb-2">
     <div class="container">
-        <a href="/san-pham" class="sf-hero-banner" style="background-image:url('@Url.Content("~/Content/assets/images/slider_1.jpg")')" aria-label="Xem danh sách sản phẩm PCShop"></a>
+        <div class="sf-hero-slider" id="sfHeroSlider" data-count="@banners.Count">
+            <div class="sf-hero-track" id="sfHeroTrack">
+                @for (var i = 0; i < banners.Count; i++)
+                {
+                    var b = banners[i];
+                    var href = string.IsNullOrWhiteSpace(b.Link) ? "/san-pham" : b.Link;
+                    var alt = string.IsNullOrWhiteSpace(b.Title) ? "Banner PCShop" : b.Title;
+                    <a href="@href" class="sf-hero-slide" aria-label="@alt">
+                        <img src="@b.Image" alt="@alt" loading="@(i == 0 ? "eager" : "lazy")" />
+                    </a>
+                }
+            </div>
+
+            @if (hasMultipleBanners)
+            {
+                <button type="button" class="sf-hero-arrow sf-hero-prev" id="sfHeroPrev" aria-label="Banner trước">
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="sf-hero-arrow sf-hero-next" id="sfHeroNext" aria-label="Banner tiếp theo">
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </button>
+                <div class="sf-hero-dots" id="sfHeroDots" role="tablist" aria-label="Chọn banner">
+                    @for (var i = 0; i < banners.Count; i++)
+                    {
+                        <button type="button" class="sf-hero-dot @(i == 0 ? "is-active" : "")" data-idx="@i" aria-label="Banner @(i + 1)"></button>
+                    }
+                </div>
+            }
+        </div>
     </div>
 </section>
 
@@ -72,3 +102,62 @@
         </div>
     </div>
 </section>
+
+@section scripts {
+    @if (hasMultipleBanners)
+    {
+        <script>
+            $(function () {
+                var $slider = $('#sfHeroSlider');
+                var $track = $('#sfHeroTrack');
+                var total = parseInt($slider.data('count'), 10) || 1;
+                if (total <= 1) { return; }
+
+                var current = 0;
+                var timer = null;
+                var touchStartX = 0;
+
+                function goTo(idx) {
+                    current = (idx + total) % total;
+                    $track.css('transform', 'translateX(-' + (current * 100) + '%)');
+                    $('#sfHeroDots .sf-hero-dot').removeClass('is-active');
+                    $('#sfHeroDots .sf-hero-dot[data-idx="' + current + '"]').addClass('is-active');
+                }
+
+                function startAuto() {
+                    stopAuto();
+                    timer = setInterval(function () { goTo(current + 1); }, 5000);
+                }
+
+                function stopAuto() {
+                    if (timer) {
+                        clearInterval(timer);
+                        timer = null;
+                    }
+                }
+
+                $('#sfHeroPrev').on('click', function () { goTo(current - 1); startAuto(); });
+                $('#sfHeroNext').on('click', function () { goTo(current + 1); startAuto(); });
+                $('#sfHeroDots').on('click', '.sf-hero-dot', function () {
+                    goTo(parseInt($(this).data('idx'), 10) || 0);
+                    startAuto();
+                });
+
+                $slider.on('mouseenter', stopAuto).on('mouseleave', startAuto);
+
+                $slider.on('touchstart', function (e) {
+                    touchStartX = e.originalEvent.touches[0].clientX;
+                    stopAuto();
+                }).on('touchend', function (e) {
+                    var dx = e.originalEvent.changedTouches[0].clientX - touchStartX;
+                    if (Math.abs(dx) > 40) {
+                        goTo(dx < 0 ? current + 1 : current - 1);
+                    }
+                    startAuto();
+                });
+
+                startAuto();
+            });
+        </script>
+    }
+}

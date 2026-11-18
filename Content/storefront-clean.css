@@ -392,28 +392,118 @@ body.sf-body {
   font-weight: 500;
 }
 
-.sf-hero-banner {
+.sf-hero-slider {
+  position: relative;
   width: 100%;
-  height: 460px;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center center;
   border-radius: var(--sf-radius-lg);
   overflow: hidden;
   border: 1px solid var(--sf-border-strong);
+  background: #111827;
+}
+
+.sf-hero-track {
+  display: flex;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.sf-hero-slide {
+  flex: 0 0 100%;
+  width: 100%;
   display: block;
 }
 
-@media (max-width: 991.98px) {
-  .sf-hero-banner {
-    height: 320px;
-  }
+.sf-hero-slide img {
+  width: 100%;
+  aspect-ratio: 2856 / 1087;
+  object-fit: cover;
+  display: block;
 }
 
-@media (max-width: 575.98px) {
-  .sf-hero-banner {
-    height: 200px;
+.sf-hero-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(24, 24, 27, 0.52);
+  color: #ffffff;
+  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.18s ease, background-color 0.18s ease;
+  z-index: 5;
+  outline: none !important;
+}
+
+.sf-hero-slider:hover .sf-hero-arrow,
+.sf-hero-arrow:focus-visible {
+  opacity: 1;
+}
+
+.sf-hero-arrow:hover {
+  background: rgba(24, 24, 27, 0.8);
+}
+
+.sf-hero-prev {
+  left: 14px;
+}
+
+.sf-hero-next {
+  right: 14px;
+}
+
+.sf-hero-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(24, 24, 27, 0.45);
+  z-index: 5;
+}
+
+.sf-hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 0;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  outline: none !important;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.sf-hero-dot.is-active {
+  width: 22px;
+  background: #ffffff;
+}
+
+@media (max-width: 767.98px) {
+  .sf-hero-slider {
     border-radius: var(--sf-radius-md);
+  }
+
+  .sf-hero-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    opacity: 0.9;
+  }
+
+  .sf-hero-dots {
+    bottom: 8px;
+    padding: 4px 8px;
   }
 }
 
@@ -2213,5 +2303,47 @@ body.sf-drawer-open .sf-mobile-drawer {
 @media (max-width: 991.98px) {
   .sf-mega-wrap {
     display: none;
+  }
+}
+
+@media (min-width: 1200px) {
+  .sf-body .container {
+    max-width: 1280px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .sf-body .container {
+    max-width: 1440px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .sf-header-search {
+    width: 300px;
+  }
+
+  .sf-product-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .sf-product-grid-3 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .sf-mega-dropdown {
+    width: 940px;
+  }
+
+  .sf-mega-subgrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1680px) {
+  .sf-body .container {
+    max-width: 1580px;
   }
 }
