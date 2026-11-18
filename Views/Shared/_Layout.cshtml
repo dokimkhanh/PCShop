@@ -1,4 +1,4 @@
-﻿@using PCShop.Models.Common
+@using PCShop.Models.Common
 @{
     var currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
     var siteName = SettingsHelper.GetValue("SettingTitle");
@@ -18,7 +18,9 @@
     if (string.IsNullOrWhiteSpace(metaRobots)) { metaRobots = "index, follow"; }
     var metaAuthor = SettingsHelper.GetValue("SeoAuthor");
     var faviconUrl = SettingsHelper.GetValue("SeoFavicon");
-    if (string.IsNullOrWhiteSpace(faviconUrl)) { faviconUrl = "/favicon.ico"; }
+    if (string.IsNullOrWhiteSpace(faviconUrl)) { faviconUrl = "/Content/images/favicon.png"; }
+    var logoUrl = SettingsHelper.GetValue("SettingLogo");
+    if (string.IsNullOrWhiteSpace(logoUrl)) { logoUrl = "/Content/images/logo.png"; }
     var canonicalBase = (SettingsHelper.GetValue("SeoCanonicalBaseUrl") ?? "").TrimEnd('/');
     var currentPath = Request.Url != null ? Request.Url.AbsolutePath : "/";
     var canonicalUrl = !string.IsNullOrWhiteSpace(canonicalBase)
@@ -77,8 +79,9 @@
     {
         <link rel="canonical" href="@canonicalUrl" />
     }
-    <link rel="icon" href="@faviconUrl" />
-    <link rel="shortcut icon" href="@faviconUrl" />
+    <link rel="icon" type="image/png" href="@faviconUrl" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/Content/images/favicon.png" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="@siteName" />
     <meta property="og:title" content="@pageTitle" />
@@ -202,9 +205,8 @@
         <div class="container">
             <div class="sf-navbar">
                 <div class="sf-nav-left">
-                    <a href="/" class="sf-logo">
-                        <span class="sf-logo-mark">P</span>
-                        <span class="sf-logo-text">PC<span>Shop</span></span>
+                    <a href="/" class="sf-logo" aria-label="@siteName">
+                        <img src="@logoUrl" alt="@siteName" class="sf-logo-img" />
                     </a>
 
                     @if (categoryMenu != null && categoryMenu.Any())
@@ -332,7 +334,9 @@
     <div class="sf-mobile-drawer-backdrop" id="sfDrawerBackdrop"></div>
     <aside class="sf-mobile-drawer" id="sfMobileDrawer" aria-label="Menu di động">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-3" style="border-bottom: 1px solid var(--sf-border);">
-            <span class="sf-logo-text" style="font-size: 18px;">PC<span>Shop</span></span>
+            <a href="/" class="sf-logo" aria-label="@siteName">
+                <img src="@logoUrl" alt="@siteName" class="sf-logo-img" style="height: 30px;" />
+            </a>
             <button type="button" id="btnCloseDrawer" class="sf-hamburger" style="display: inline-flex;" aria-label="Đóng menu">
                 <i class="fa fa-times" aria-hidden="true"></i>
             </button>
@@ -417,9 +421,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-5 mb-4 mb-lg-0">
-                    <a href="/" class="sf-logo mb-3">
-                        <span class="sf-logo-mark">P</span>
-                        <span class="sf-logo-text">PC<span>Shop</span></span>
+                    <a href="/" class="sf-logo mb-3" aria-label="@siteName">
+                        <img src="@logoUrl" alt="@siteName" class="sf-logo-img" style="height: 38px;" />
                     </a>
                     <p class="mb-3" style="max-width: 380px;">@(string.IsNullOrWhiteSpace(metaDesc) ? "Chuyên cung cấp PC Gaming, Laptop hiệu năng cao và linh kiện máy tính chính hãng." : metaDesc)</p>
                     <div class="d-flex flex-column" style="gap: 6px; font-size: 13px;">

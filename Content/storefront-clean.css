@@ -181,6 +181,14 @@ body.sf-body {
   flex-shrink: 0;
 }
 
+.sf-logo-img {
+  height: 36px;
+  width: auto;
+  max-width: 175px;
+  display: block;
+  object-fit: contain;
+}
+
 .sf-logo-mark {
   width: 34px;
   height: 34px;

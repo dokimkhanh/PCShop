@@ -1,4 +1,4 @@
-﻿@using PCShop.Models.Common
+@using PCShop.Models.Common
 @{
     var currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
     var siteTitle = SettingsHelper.GetValue("SettingTitle");
@@ -20,7 +20,7 @@
 }
 
 <a href="/Admin" class="brand-link">
-    <span class="brand-mark">P</span>
+    <img src="/Content/images/favicon.png" alt="@siteTitle" style="width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;" />
     <span class="brand-text-wrap">
         <span class="brand-title">@siteTitle</span>
         <span class="brand-subtitle">Quản trị cửa hàng</span>

@@ -5173,6 +5173,8 @@
     <Content Include="Content\client\plugins\uplot\uPlot.iife.min.js" />
     <Content Include="Content\client\plugins\uplot\uPlot.min.css" />
     <Content Include="Content\admin-clean.css" />
+    <Content Include="Content\images\favicon.png" />
+    <Content Include="Content\images\logo.png" />
     <Content Include="Content\storefront-clean.css" />
     <Content Include="Content\PagedList.css" />
     <Content Include="Content\template\mail1.html" />
