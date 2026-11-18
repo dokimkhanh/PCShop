@@ -4,6 +4,8 @@
 @{
     ViewBag.Title = "Danh mục";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var parentNames = ViewBag.ParentNames as System.Collections.Generic.Dictionary<int, string>
+        ?? new System.Collections.Generic.Dictionary<int, string>();
 }
 
 <section class="content-header">
@@ -47,6 +49,7 @@
                                 <input type="checkbox" id="selectAll" aria-label="Chọn tất cả" />
                             </th>
                             <th>Danh mục</th>
+                            <th>Cấp danh mục</th>
                             <th>Ngày tạo</th>
                             <th>Cập nhật</th>
                             <th class="text-right" style="width: 100px;">Thao tác</th>
@@ -62,8 +65,24 @@
                                         <input type="checkbox" class="selectRow" value="@item.id" aria-label="Chọn @item.title" />
                                     </td>
                                     <td>
-                                        <div class="admin-item-title">@item.title</div>
-                                        <div class="admin-item-sub">@(string.IsNullOrWhiteSpace(item.description) ? "—" : item.description)</div>
+                                        <div class="admin-item-title" style="@(item.parentID.HasValue ? "padding-left: 16px;" : "")">
+                                            @if (item.parentID.HasValue)
+                                            {
+                                                <span style="color: var(--muted); margin-right: 4px;">↳</span>
+                                            }
+                                            @item.title
+                                        </div>
+                                        <div class="admin-item-sub" style="@(item.parentID.HasValue ? "padding-left: 16px;" : "")">@(string.IsNullOrWhiteSpace(item.description) ? "—" : item.description)</div>
+                                    </td>
+                                    <td style="white-space: nowrap;">
+                                        @if (item.parentID.HasValue && parentNames.ContainsKey(item.parentID.Value))
+                                        {
+                                            <span class="badge-clean badge-clean-neutral">@parentNames[item.parentID.Value]</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-clean badge-clean-success">Danh mục cha</span>
+                                        }
                                     </td>
                                     <td class="tabular-nums" style="color: var(--muted); white-space: nowrap;">
                                         @item.createdDate.ToString("dd/MM/yyyy")
@@ -85,7 +104,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="5">
+                                <td colspan="6">
                                     <div class="empty-state">
                                         <div class="empty-state-icon"><i class="fas fa-tag"></i></div>
                                         <div class="empty-state-title">Chưa có danh mục nào</div>

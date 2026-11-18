@@ -3,6 +3,7 @@ using PCShop.Models;
 using PCShop.Models.Common;
 using PCShop.Models.EF;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -15,10 +16,18 @@ namespace PCShop.Areas.Admin.Controllers
         [RequirePermission("Category.View", "Category.Manage")]
         public ActionResult Index(string txtSearch, int? page)
         {
-            var pageSize = 10;
+            var pageSize = 15;
             var pageIndex = page ?? 1;
 
-            IQueryable<Category> query = dbContext.categories.AsNoTracking().OrderByDescending(x => x.id);
+            var allCats = dbContext.categories.AsNoTracking().ToList();
+            ViewBag.ParentNames = allCats.ToDictionary(x => x.id, x => x.title);
+
+            IQueryable<Category> query = dbContext.categories
+                .AsNoTracking()
+                .OrderBy(x => x.parentID ?? x.id)
+                .ThenBy(x => x.parentID.HasValue ? 1 : 0)
+                .ThenBy(x => x.id);
+
             if (!string.IsNullOrWhiteSpace(txtSearch))
             {
                 var keyword = txtSearch.Trim().ToLower();
@@ -35,6 +44,7 @@ namespace PCShop.Areas.Admin.Controllers
         [RequirePermission("Category.Manage")]
         public ActionResult Add()
         {
+            PopulateParentDropdown(null, null);
             return View();
         }
 
@@ -43,6 +53,16 @@ namespace PCShop.Areas.Admin.Controllers
             return User != null && User.Identity != null && !string.IsNullOrEmpty(User.Identity.Name)
                 ? User.Identity.Name
                 : "system";
+        }
+
+        private void PopulateParentDropdown(int? excludeId, int? selectedParentId)
+        {
+            var parents = dbContext.categories
+                .AsNoTracking()
+                .Where(x => x.parentID == null && (!excludeId.HasValue || x.id != excludeId.Value))
+                .OrderBy(x => x.id)
+                .ToList();
+            ViewBag.ParentCategories = new SelectList(parents, "id", "title", selectedParentId);
         }
 
         [HttpPost]
@@ -58,8 +78,10 @@ namespace PCShop.Areas.Admin.Controllers
                 category.alias = CommonHelper.FilterChar(category.title);
                 dbContext.categories.Add(category);
                 dbContext.SaveChanges();
+                CategoryMenuHelper.ClearCache();
                 return RedirectToAction("Index");
             }
+            PopulateParentDropdown(null, category.parentID);
             return View(category);
         }
 
@@ -71,6 +93,7 @@ namespace PCShop.Areas.Admin.Controllers
             {
                 return HttpNotFound();
             }
+            PopulateParentDropdown(item.id, item.parentID);
             return View(item);
         }
 
@@ -89,12 +112,15 @@ namespace PCShop.Areas.Admin.Controllers
 
                 existing.title = category.title;
                 existing.description = category.description;
+                existing.parentID = category.parentID == existing.id ? null : category.parentID;
                 existing.alias = CommonHelper.FilterChar(category.title);
                 existing.modifiedDate = DateTime.Now;
                 existing.modifiedBy = CurrentUserName();
                 dbContext.SaveChanges();
+                CategoryMenuHelper.ClearCache();
                 return RedirectToAction("Index");
             }
+            PopulateParentDropdown(category.id, category.parentID);
             return View(category);
         }
 
@@ -109,6 +135,11 @@ namespace PCShop.Areas.Admin.Controllers
                 return Json(new { success = false });
             }
 
+            if (dbContext.categories.Any(x => x.parentID == id))
+            {
+                return Json(new { success = false, msg = "Danh mục đang có danh mục con, không thể xoá." });
+            }
+
             if (dbContext.products.Any(x => x.categoryID == id))
             {
                 return Json(new { success = false, msg = "Danh mục đang có sản phẩm, không thể xoá." });
@@ -116,6 +147,7 @@ namespace PCShop.Areas.Admin.Controllers
 
             dbContext.categories.Remove(item);
             dbContext.SaveChanges();
+            CategoryMenuHelper.ClearCache();
             return Json(new { success = true });
         }
 
@@ -141,7 +173,7 @@ namespace PCShop.Areas.Admin.Controllers
                         continue;
                     }
 
-                    if (dbContext.products.Any(x => x.categoryID == id))
+                    if (dbContext.products.Any(x => x.categoryID == id) || dbContext.categories.Any(x => x.parentID == id))
                     {
                         hasError = true;
                         continue;
@@ -151,7 +183,8 @@ namespace PCShop.Areas.Admin.Controllers
                 }
 
                 dbContext.SaveChanges();
-                return Json(new { success = !hasError, msg = hasError ? "Một số danh mục đang có sản phẩm nên không thể xoá." : null });
+                CategoryMenuHelper.ClearCache();
+                return Json(new { success = !hasError, msg = hasError ? "Một số danh mục đang có danh mục con hoặc sản phẩm nên không thể xoá." : null });
             }
             return Json(new { success = false });
         }

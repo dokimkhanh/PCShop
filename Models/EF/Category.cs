@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -24,7 +24,9 @@ namespace PCShop.Models.EF
 
         public string alias { get; set; }
 
-        public virtual ICollection<Product> products { get; set;}
+        public int? parentID { get; set; }
+
+        public virtual ICollection<Product> products { get; set; }
 
     }
 }

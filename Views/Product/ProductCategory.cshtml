@@ -18,6 +18,9 @@
     var currentSort = ViewBag.CurrentSort as string ?? "";
     var productCount = Model != null ? Model.Count() : 0;
     var formAction = categoryId > 0 ? "/danh-muc/" + categoryAlias + "/" + categoryId : "/san-pham";
+    var parentCategory = ViewBag.ParentCategory as PCShop.Models.Common.CategoryMenuNode;
+    var childCategories = ViewBag.ChildCategories as System.Collections.Generic.List<PCShop.Models.Common.CategoryMenuNode>;
+    var siblingCategories = ViewBag.SiblingCategories as System.Collections.Generic.List<PCShop.Models.Common.CategoryMenuNode>;
 }
 
 <div class="container sf-page-wrap">
@@ -25,6 +28,11 @@
         <a href="/">Trang chủ</a>
         <span class="sep">/</span>
         <a href="/san-pham">Sản phẩm</a>
+        @if (parentCategory != null)
+        {
+            <span class="sep">/</span>
+            <a href="/danh-muc/@parentCategory.Alias/@(parentCategory.Id)">@parentCategory.Title</a>
+        }
         <span class="sep">/</span>
         <span class="current">@categoryTitle</span>
     </nav>
@@ -65,6 +73,27 @@
                         </button>
                     </form>
                 </div>
+
+                @if (childCategories != null && childCategories.Any())
+                {
+                    <div class="sf-subcat-bar">
+                        <a href="@formAction" class="sf-subcat-pill active">Tất cả @categoryTitle</a>
+                        @foreach (var sub in childCategories)
+                        {
+                            <a href="/danh-muc/@sub.Alias/@(sub.Id)" class="sf-subcat-pill">@sub.Title</a>
+                        }
+                    </div>
+                }
+                else if (parentCategory != null && siblingCategories != null && siblingCategories.Any())
+                {
+                    <div class="sf-subcat-bar">
+                        <a href="/danh-muc/@parentCategory.Alias/@(parentCategory.Id)" class="sf-subcat-pill">Tất cả @parentCategory.Title</a>
+                        @foreach (var sib in siblingCategories)
+                        {
+                            <a href="/danh-muc/@sib.Alias/@(sib.Id)" class="sf-subcat-pill @(sib.Id == categoryId ? "active" : "")">@sib.Title</a>
+                        }
+                    </div>
+                }
             </div>
 
             @if (Model != null && Model.Any())
@@ -103,7 +132,7 @@
                                 <img src="@strImg" onerror="this.onerror=null;this.src='@fallbackImg';" alt="@item.title" />
                             </a>
                             <div class="sf-product-body">
-                                <div class="sf-product-cat">@categoryTitle</div>
+                                <div class="sf-product-cat">@(item.productCategory != null ? item.productCategory.title : categoryTitle)</div>
                                 <h3 class="sf-product-title">
                                     <a href="/san-pham/@item.alias-p@(item.id)" title="@item.title">@item.title</a>
                                 </h3>

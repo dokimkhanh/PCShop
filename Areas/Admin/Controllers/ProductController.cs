@@ -43,7 +43,7 @@ namespace PCShop.Areas.Admin.Controllers
         [RequirePermission("Product.Manage")]
         public ActionResult Add()
         {
-            ViewBag.productCategoryID = new SelectList(dbContext.categories.ToList(), "id", "title");
+            ViewBag.productCategoryID = CategoryMenuHelper.GetHierarchicalSelectList();
             return View();
         }
 
@@ -89,10 +89,11 @@ namespace PCShop.Areas.Admin.Controllers
 
                 dbContext.products.Add(product);
                 dbContext.SaveChanges();
+                CategoryMenuHelper.ClearCache();
 
                 return RedirectToAction("Index");
             }
-            ViewBag.productCategoryID = new SelectList(dbContext.categories.ToList(), "id", "title", product.categoryID);
+            ViewBag.productCategoryID = CategoryMenuHelper.GetHierarchicalSelectList(product.categoryID);
             ViewBag.UploadedImagesJson = Newtonsoft.Json.JsonConvert.SerializeObject(
                 (listImage ?? new List<string>()).Where(u => !string.IsNullOrWhiteSpace(u)).Distinct().ToList());
             ViewBag.SelectedDefault = rdDefault ?? 0;
@@ -102,7 +103,6 @@ namespace PCShop.Areas.Admin.Controllers
         [RequirePermission("Product.Manage")]
         public ActionResult Edit(int id)
         {
-            ViewBag.productCategoryID = new SelectList(dbContext.categories.ToList(), "id", "title");
             var item = dbContext.products
                 .Include(x => x.productImages)
                 .FirstOrDefault(x => x.id == id);
@@ -110,6 +110,7 @@ namespace PCShop.Areas.Admin.Controllers
             {
                 return HttpNotFound();
             }
+            ViewBag.productCategoryID = CategoryMenuHelper.GetHierarchicalSelectList(item.categoryID);
             return View(item);
         }
 
@@ -175,10 +176,11 @@ namespace PCShop.Areas.Admin.Controllers
                 }
 
                 dbContext.SaveChanges();
+                CategoryMenuHelper.ClearCache();
                 return RedirectToAction("Index");
             }
 
-            ViewBag.productCategoryID = new SelectList(dbContext.categories.ToList(), "id", "title", product.categoryID);
+            ViewBag.productCategoryID = CategoryMenuHelper.GetHierarchicalSelectList(product.categoryID);
             product.productImages = dbContext.productImages.Where(x => x.ProductId == product.id).ToList();
             return View(product);
         }

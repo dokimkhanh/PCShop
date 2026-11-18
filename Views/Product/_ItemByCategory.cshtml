@@ -1,6 +1,8 @@
 ﻿@model IEnumerable<PCShop.Models.EF.Product>
 @{
     var fallbackImg = Url.Content("~/Content/assets/images/product_1.png");
+    var rootAliasMap = ViewBag.RootAliasByCategoryId as System.Collections.Generic.Dictionary<int, string>
+        ?? PCShop.Models.Common.CategoryMenuHelper.GetRootAliasByCategoryId();
 }
 @if (Model != null && Model.Any())
 {
@@ -18,9 +20,10 @@
         var hasSale = item.priceSale > 0 && item.priceSale < item.price;
         var discountPct = hasSale && item.price > 0 ? (int)System.Math.Round((decimal)(item.price - item.priceSale) * 100 / item.price) : 0;
         var catAlias = item.productCategory != null ? item.productCategory.alias : "";
+        var rootAlias = rootAliasMap.ContainsKey(item.categoryID) ? rootAliasMap[item.categoryID] : catAlias;
         var catTitle = item.productCategory != null ? item.productCategory.title : "Sản phẩm";
 
-        <div class="sf-product-col" data-cat="@catAlias">
+        <div class="sf-product-col" data-cat="@catAlias" data-root-cat="@rootAlias">
             <article class="sf-product-card">
                 <a href="/san-pham/@item.alias-p@(item.id)" class="sf-product-thumb">
                     <div class="sf-badge-wrap">

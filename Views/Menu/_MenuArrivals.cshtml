@@ -1,4 +1,4 @@
-﻿@model IEnumerable<PCShop.Models.EF.Category>
+﻿@model IEnumerable<PCShop.Models.Common.CategoryMenuNode>
 
 <div class="sf-section-head">
     <div>
@@ -14,7 +14,7 @@
         <button type="button" class="sf-pill-btn active" data-cat-filter="all">Tất cả</button>
         @foreach (var item in Model)
         {
-            <button type="button" class="sf-pill-btn" data-cat-filter="@item.alias">@item.title</button>
+            <button type="button" class="sf-pill-btn" data-cat-filter="@item.Alias">@item.Title</button>
         }
     </div>
 }
@@ -30,14 +30,20 @@
             $('#homeCatFilter .sf-pill-btn').removeClass('active');
             $(this).addClass('active');
 
+            var shown = 0;
             $('#homeProductGrid .sf-product-col').each(function () {
                 var cat = $(this).data('cat');
-                if (selected === 'all' || cat === selected) {
+                var rootCat = $(this).data('root-cat');
+                var match = (selected === 'all' || cat === selected || rootCat === selected);
+                if (match && (selected !== 'all' || shown < 12)) {
                     $(this).show();
+                    shown++;
                 } else {
                     $(this).hide();
                 }
             });
         });
+
+        $('#homeCatFilter .sf-pill-btn.active').trigger('click');
     });
 </script>

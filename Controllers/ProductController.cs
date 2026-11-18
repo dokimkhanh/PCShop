@@ -65,8 +65,24 @@ namespace PCShop.Controllers
 
             if (id != null)
             {
-                query = query.Where(x => x.categoryID == id);
-                ViewBag.Category = dbContext.categories.Find(id.Value);
+                var catIds = CategoryMenuHelper.GetCategoryAndChildIds(id.Value);
+                query = query.Where(x => catIds.Contains(x.categoryID));
+                var currentCat = dbContext.categories.AsNoTracking().FirstOrDefault(x => x.id == id.Value);
+                ViewBag.Category = currentCat;
+                var parentNode = CategoryMenuHelper.FindParentOf(id.Value);
+                if (parentNode != null)
+                {
+                    ViewBag.ParentCategory = parentNode;
+                    ViewBag.SiblingCategories = parentNode.Children;
+                }
+                else
+                {
+                    var rootNode = CategoryMenuHelper.GetMenuTree().FirstOrDefault(x => x.Id == id.Value);
+                    if (rootNode != null && rootNode.Children.Count > 0)
+                    {
+                        ViewBag.ChildCategories = rootNode.Children;
+                    }
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(txtSearch))
@@ -101,14 +117,32 @@ namespace PCShop.Controllers
 
         public ActionResult ItemByCategory()
         {
-            var items = dbContext.products
+            var tree = CategoryMenuHelper.GetMenuTree();
+            var rootMap = CategoryMenuHelper.GetRootAliasByCategoryId();
+            var allRecent = dbContext.products
                 .Include(x => x.productCategory)
                 .Include(x => x.productImages)
                 .AsNoTracking()
                 .OrderByDescending(x => x.id)
-                .Take(12)
                 .ToList();
-            return PartialView("_ItemByCategory", items);
+
+            var balanced = new System.Collections.Generic.List<Product>();
+            foreach (var root in tree)
+            {
+                var groupItems = allRecent
+                    .Where(p => rootMap.ContainsKey(p.categoryID) && rootMap[p.categoryID] == root.Alias)
+                    .Take(4)
+                    .ToList();
+                balanced.AddRange(groupItems);
+            }
+
+            if (balanced.Count == 0)
+            {
+                balanced = allRecent.Take(16).ToList();
+            }
+
+            ViewBag.RootAliasByCategoryId = rootMap;
+            return PartialView("_ItemByCategory", balanced);
         }
 
         public ActionResult ItemProductSale()

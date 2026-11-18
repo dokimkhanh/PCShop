@@ -48,6 +48,7 @@
     var zaloUrl = SettingsHelper.GetValue("SocialZalo");
 
     var isAdminCapable = Request.IsAuthenticated && PermissionHelper.HasPermission(User);
+    var categoryMenu = CategoryMenuHelper.GetMenuTree();
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -200,10 +201,106 @@
 
         <div class="container">
             <div class="sf-navbar">
-                <a href="/" class="sf-logo">
-                    <span class="sf-logo-mark">P</span>
-                    <span class="sf-logo-text">PC<span>Shop</span></span>
-                </a>
+                <div class="sf-nav-left">
+                    <a href="/" class="sf-logo">
+                        <span class="sf-logo-mark">P</span>
+                        <span class="sf-logo-text">PC<span>Shop</span></span>
+                    </a>
+
+                    @if (categoryMenu != null && categoryMenu.Any())
+                    {
+                        <div class="sf-mega-wrap" id="sfMegaWrap">
+                            <button type="button" id="sfMegaTrigger" class="sf-mega-trigger" aria-expanded="false" aria-controls="sfMegaDropdown">
+                                <i class="fa fa-bars" aria-hidden="true"></i>
+                                <span>Danh mục sản phẩm</span>
+                                <i class="fa fa-angle-down sf-mega-caret" aria-hidden="true"></i>
+                            </button>
+
+                            <div class="sf-mega-dropdown" id="sfMegaDropdown" role="region" aria-label="Danh mục sản phẩm">
+                                <div class="sf-mega-left">
+                                    <ul class="sf-mega-parents">
+                                        @for (var i = 0; i < categoryMenu.Count; i++)
+                                        {
+                                            var root = categoryMenu[i];
+                                            <li class="sf-mega-parent-item @(i == 0 ? "is-active" : "")" data-mega-idx="@i">
+                                                <a href="/danh-muc/@root.Alias/@(root.Id)" class="sf-mega-parent-link">
+                                                    <span class="sf-mega-parent-name">@root.Title</span>
+                                                    <i class="fa fa-angle-right sf-mega-parent-arrow" aria-hidden="true"></i>
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                    <div class="sf-mega-left-foot">
+                                        <a href="/san-pham">
+                                            <span>Xem tất cả sản phẩm</span>
+                                            <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="sf-mega-right">
+                                    @for (var i = 0; i < categoryMenu.Count; i++)
+                                    {
+                                        var root = categoryMenu[i];
+                                        <div class="sf-mega-pane @(i == 0 ? "is-active" : "")" data-mega-pane="@i">
+                                            <div class="sf-mega-pane-head">
+                                                <div>
+                                                    <div class="sf-mega-pane-title">@root.Title</div>
+                                                    @if (!string.IsNullOrWhiteSpace(root.Description))
+                                                    {
+                                                        <div class="sf-mega-pane-sub">@root.Description</div>
+                                                    }
+                                                </div>
+                                                <a href="/danh-muc/@root.Alias/@(root.Id)" class="sf-mega-pane-all">
+                                                    <span>Xem tất cả (@root.TotalProductCount)</span>
+                                                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                                                </a>
+                                            </div>
+
+                                            @if (root.Children.Any())
+                                            {
+                                                <div class="sf-mega-subgrid">
+                                                    @foreach (var child in root.Children)
+                                                    {
+                                                        <a href="/danh-muc/@child.Alias/@(child.Id)" class="sf-mega-subitem">
+                                                            <span class="sf-mega-subitem-name">@child.Title</span>
+                                                            @if (child.DirectProductCount > 0)
+                                                            {
+                                                                <span class="sf-mega-subitem-count sf-tabular">@child.DirectProductCount SP</span>
+                                                            }
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+                                            else if (root.FeaturedProducts.Any())
+                                            {
+                                                <div class="sf-mega-prod-grid">
+                                                    @foreach (var prod in root.FeaturedProducts)
+                                                    {
+                                                        var prodImg = string.IsNullOrWhiteSpace(prod.Image) ? Url.Content("~/Content/assets/images/product_1.png") : prod.Image;
+                                                        <a href="/san-pham/@prod.Alias-p@(prod.Id)" class="sf-mega-prod-card">
+                                                            <img src="@prodImg" alt="@prod.Title" />
+                                                            <div class="sf-mega-prod-info">
+                                                                <div class="sf-mega-prod-title" title="@prod.Title">@prod.Title</div>
+                                                                <div class="sf-mega-prod-price sf-tabular">@CommonHelper.ConvertMoney(prod.EffectivePrice) đ</div>
+                                                            </div>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="sf-mega-empty">
+                                                    Khám phá tất cả sản phẩm thuộc nhóm <strong>@root.Title</strong> tại PCShop.
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
 
                 <ul class="sf-nav-links">
                     <li><a href="/" class="@(currentController.Equals("Home", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Trang chủ</a></li>
@@ -250,13 +347,49 @@
             </div>
         </form>
 
-        <ul class="sf-cat-list mb-4">
+        <ul class="sf-cat-list mb-3">
             <li class="@(currentController.Equals("Home", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/">Trang chủ</a></li>
-            <li class="@(currentController.Equals("Product", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/san-pham">Sản phẩm</a></li>
+            <li class="@(currentController.Equals("Product", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/san-pham">Tất cả sản phẩm</a></li>
             <li class="@(currentController.Equals("News", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/tin-tuc">Tin tức</a></li>
             <li class="@(currentController.Equals("Contact", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/lien-he">Liên hệ</a></li>
             <li class="@(currentController.Equals("Cart", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/Cart">Giỏ hàng</a></li>
         </ul>
+
+        @if (categoryMenu != null && categoryMenu.Any())
+        {
+            <div class="sf-mobile-cat-sec mb-4">
+                <div class="sf-mobile-cat-heading">Danh mục sản phẩm</div>
+                <ul class="sf-mobile-cat-list">
+                    @foreach (var root in categoryMenu)
+                    {
+                        <li class="sf-mobile-cat-item">
+                            <div class="sf-mobile-cat-row">
+                                <a href="/danh-muc/@root.Alias/@(root.Id)" class="sf-mobile-cat-link">
+                                    <span>@root.Title</span>
+                                </a>
+                                @if (root.Children.Any())
+                                {
+                                    <button type="button" class="sf-mobile-cat-toggle" aria-expanded="false" aria-label="Mở danh mục con @root.Title">
+                                        <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                    </button>
+                                }
+                            </div>
+                            @if (root.Children.Any())
+                            {
+                                <ul class="sf-mobile-sub-list" style="display: none;">
+                                    @foreach (var child in root.Children)
+                                    {
+                                        <li>
+                                            <a href="/danh-muc/@child.Alias/@(child.Id)">@child.Title</a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
 
         <div class="pt-3" style="border-top: 1px solid var(--sf-border);">
             @if (!Request.IsAuthenticated)
@@ -393,6 +526,61 @@
             });
             $('#btnCloseDrawer, #sfDrawerBackdrop').on('click', function () {
                 $('body').removeClass('sf-drawer-open');
+            });
+
+            var $megaWrap = $('#sfMegaWrap');
+            var $megaTrigger = $('#sfMegaTrigger');
+            var closeTimer = null;
+
+            function setMegaOpen(open) {
+                $megaWrap.toggleClass('is-open', open);
+                $megaTrigger.attr('aria-expanded', open ? 'true' : 'false');
+            }
+
+            function activateMegaIdx(idx) {
+                $megaWrap.find('.sf-mega-parent-item').removeClass('is-active');
+                $megaWrap.find('.sf-mega-parent-item[data-mega-idx="' + idx + '"]').addClass('is-active');
+                $megaWrap.find('.sf-mega-pane').removeClass('is-active');
+                $megaWrap.find('.sf-mega-pane[data-mega-pane="' + idx + '"]').addClass('is-active');
+            }
+
+            $megaWrap.on('mouseenter', function () {
+                if (closeTimer) {
+                    clearTimeout(closeTimer);
+                    closeTimer = null;
+                }
+                setMegaOpen(true);
+            }).on('mouseleave', function () {
+                closeTimer = setTimeout(function () {
+                    setMegaOpen(false);
+                }, 140);
+            });
+
+            $megaTrigger.on('click', function (e) {
+                e.preventDefault();
+                setMegaOpen(!$megaWrap.hasClass('is-open'));
+            });
+
+            $megaWrap.on('mouseenter focusin', '.sf-mega-parent-item', function () {
+                activateMegaIdx($(this).data('mega-idx'));
+            });
+
+            $(document).on('click', function (e) {
+                if ($megaWrap.length && !$(e.target).closest('#sfMegaWrap').length) {
+                    setMegaOpen(false);
+                }
+            }).on('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    setMegaOpen(false);
+                }
+            });
+
+            $('#sfMobileDrawer').on('click', '.sf-mobile-cat-toggle', function () {
+                var $item = $(this).closest('.sf-mobile-cat-item');
+                var willOpen = !$item.hasClass('is-open');
+                $item.toggleClass('is-open', willOpen);
+                $(this).attr('aria-expanded', willOpen ? 'true' : 'false');
+                $item.children('.sf-mobile-sub-list').stop(true, true).slideToggle(160);
             });
         });
     </script>

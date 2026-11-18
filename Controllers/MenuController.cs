@@ -1,16 +1,10 @@
-﻿using PCShop.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using PCShop.Models.Common;
 using System.Web.Mvc;
 
 namespace PCShop.Controllers
 {
     public class MenuController : Controller
     {
-        private ApplicationDbContext dbContext = new ApplicationDbContext();
-        // GET: Menu
         public ActionResult Index()
         {
             return View();
@@ -18,8 +12,8 @@ namespace PCShop.Controllers
 
         public ActionResult MenuArrivals()
         {
-            var item = dbContext.categories.ToList();
-            return PartialView("_MenuArrivals", item);
+            var roots = CategoryMenuHelper.GetMenuTree();
+            return PartialView("_MenuArrivals", roots);
         }
 
         public ActionResult MenuProductCategoryLeft(int? id)
@@ -28,8 +22,8 @@ namespace PCShop.Controllers
             {
                 ViewBag.CategoryID = id;
             }
-            var item = dbContext.categories.ToList();
-            return PartialView("_MenuProductCategoryLeft", item);
+            var tree = CategoryMenuHelper.GetMenuTree();
+            return PartialView("_MenuProductCategoryLeft", tree);
         }
     }
 }

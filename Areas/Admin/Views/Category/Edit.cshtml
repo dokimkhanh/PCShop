@@ -1,70 +1,59 @@
 ﻿@model PCShop.Models.EF.Category
-
 @{
-    ViewBag.Title = "Cập nhật";
+    ViewBag.Title = "Cập nhật danh mục";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
 <section class="content-header">
     <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1>Sửa thông tin danh mục</h1>
-            </div>
+        <div class="d-flex align-items-center justify-content-between">
+            <h1>Sửa danh mục</h1>
+            <a href="/Admin/Category" class="btn btn-default btn-sm">
+                <i class="fas fa-arrow-left"></i>
+                <span>Quay lại</span>
+            </a>
         </div>
-    </div><!-- /.container-fluid -->
+    </div>
 </section>
 
 <section class="content">
     <div class="container-fluid">
-        <!-- SELECT2 EXAMPLE -->
-        <div class="card card-default">
-            <div class="card-header">
-                <h3 class="card-title">Thông tin danh mục</h3>
-
-                <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-            <!-- /.card-header -->
-            @using (Html.BeginForm("Edit", "Category", FormMethod.Post, new { }))
+        <div class="card">
+            @using (Html.BeginForm("Edit", "Category", FormMethod.Post))
             {
                 @Html.AntiForgeryToken()
-                @Html.ValidationSummary(false)
-                @*@Html.HiddenFor(x => x.id)*@
+                @Html.HiddenFor(x => x.id)
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="title">Tên danh mục</label>
-                                @Html.TextBoxFor(x => x.title, new { @class = "form-control", @placeholder = "Phụ kiện" })
-                                @Html.ValidationMessageFor(x => x.title, null, new { @class = "text-danger" })
-                                @*<input type="text" class="form-control" id="exampleInputEmail1" >*@
-                            </div>
-                            <div class="form-group">
-                                <label for="description">Mô tả</label>
-                                @Html.TextBoxFor(x => x.description, new { @class = "form-control", @placeholder = "Danh mục phụ kiện" })
-                                @Html.ValidationMessageFor(x => x.description, null, new { @class = "text-danger" })
-                                @*<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Danh mục phụ kiện">*@
-                            </div>
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 px-3 mb-3", @style = "border-radius: 10px; font-size: 13px;" })
 
-                            <!-- /.form-group -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="title">Tên danh mục <span class="text-danger">*</span></label>
+                                @Html.TextBoxFor(x => x.title, new { @class = "form-control", @placeholder = "Tên danh mục" })
+                                @Html.ValidationMessageFor(x => x.title, null, new { @class = "text-danger small" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="parentID">Danh mục cha</label>
+                                @Html.DropDownListFor(x => x.parentID, ViewBag.ParentCategories as SelectList, "— Là danh mục cha (cấp 1) —", new { @class = "form-control" })
+                            </div>
                         </div>
                     </div>
-                    <!-- /.row -->
+
+                    <div class="form-group mb-0">
+                        <label for="description">Mô tả</label>
+                        @Html.TextBoxFor(x => x.description, new { @class = "form-control", @placeholder = "Mô tả ngắn cho danh mục" })
+                        @Html.ValidationMessageFor(x => x.description, null, new { @class = "text-danger small" })
+                    </div>
                 </div>
-                <!-- /.card-body -->
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-outline-success">Cập nhật thông tin</button>
+
+                <div class="card-footer d-flex align-items-center justify-content-end" style="gap: 8px;">
+                    <a href="/Admin/Category" class="btn btn-default">Huỷ</a>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                 </div>
             }
         </div>
-        <!-- /.card -->
     </div>
-    <!-- /.container-fluid -->
 </section>

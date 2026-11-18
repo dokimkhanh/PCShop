@@ -1,8 +1,8 @@
-﻿@model IEnumerable<PCShop.Models.EF.Category>
+﻿@model IEnumerable<PCShop.Models.Common.CategoryMenuNode>
 @{
     int? activeCategoryId = ViewBag.CategoryID as int?;
 }
-<ul class="sf-cat-list">
+<ul class="sf-cat-list sf-cat-tree">
     <li class="@(activeCategoryId == null ? "active" : "")">
         <a href="/san-pham">
             <span>Tất cả sản phẩm</span>
@@ -11,15 +11,58 @@
     </li>
     @if (Model != null && Model.Any())
     {
-        foreach (var item in Model)
+        foreach (var parent in Model)
         {
-            var isActive = activeCategoryId.HasValue && activeCategoryId.Value == item.id;
-            <li class="@(isActive ? "active" : "")">
-                <a href="/danh-muc/@item.alias/@(item.id)">
-                    <span>@item.title</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
+            var isParentActive = activeCategoryId.HasValue && activeCategoryId.Value == parent.Id;
+            var hasActiveChild = activeCategoryId.HasValue && parent.Children.Any(c => c.Id == activeCategoryId.Value);
+            var isExpanded = isParentActive || hasActiveChild;
+            <li class="sf-cat-group @(isParentActive ? "active" : "") @(isExpanded ? "is-open" : "")">
+                <div class="sf-cat-group-head">
+                    <a href="/danh-muc/@parent.Alias/@(parent.Id)" class="sf-cat-parent-link">
+                        <span class="sf-cat-tree-name">@parent.Title</span>
+                        @if (parent.TotalProductCount > 0)
+                        {
+                            <span class="sf-cat-count sf-tabular">@parent.TotalProductCount</span>
+                        }
+                    </a>
+                    @if (parent.Children.Any())
+                    {
+                        <button type="button" class="sf-cat-toggle" aria-label="Mở danh mục con của @parent.Title" aria-expanded="@(isExpanded ? "true" : "false")">
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </button>
+                    }
+                </div>
+                @if (parent.Children.Any())
+                {
+                    <ul class="sf-cat-sublist" style="display: @(isExpanded ? "block" : "none");">
+                        @foreach (var child in parent.Children)
+                        {
+                            var isChildActive = activeCategoryId.HasValue && activeCategoryId.Value == child.Id;
+                            <li class="@(isChildActive ? "active" : "")">
+                                <a href="/danh-muc/@child.Alias/@(child.Id)">
+                                    <span>@child.Title</span>
+                                    @if (child.DirectProductCount > 0)
+                                    {
+                                        <span class="sf-cat-count sf-tabular">@child.DirectProductCount</span>
+                                    }
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
             </li>
         }
     }
 </ul>
+<script>
+    $(function () {
+        $('.sf-cat-tree').off('click.sfCatTree').on('click.sfCatTree', '.sf-cat-toggle', function (e) {
+            e.preventDefault();
+            var $group = $(this).closest('.sf-cat-group');
+            var willOpen = !$group.hasClass('is-open');
+            $group.toggleClass('is-open', willOpen);
+            $(this).attr('aria-expanded', willOpen ? 'true' : 'false');
+            $group.children('.sf-cat-sublist').stop(true, true).slideToggle(160);
+        });
+    });
+</script>
