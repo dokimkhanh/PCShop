@@ -1,4 +1,4 @@
-﻿using PagedList;
+using PagedList;
 using PCShop.Models;
 using PCShop.Models.EF;
 using System;
@@ -12,7 +12,6 @@ namespace PCShop.Controllers
     public class NewsController : Controller
     {
         private ApplicationDbContext _dbContext = new ApplicationDbContext();
-        // GET: News
         public ActionResult Index(int? page)
         {
             int pageSize = 10;
@@ -29,10 +28,15 @@ namespace PCShop.Controllers
         }
 
 
-        public ActionResult NewsDetail(int id) {
-            var _new = _dbContext.news.Find(id);
-            ViewBag.Tieude = _new.title;
-            return View(_new);
+        public ActionResult NewsDetail(int id)
+        {
+            var item = _dbContext.news.Find(id);
+            if (item == null)
+            {
+                return HttpNotFound();
+            }
+            ViewBag.Tieude = item.title;
+            return View(item);
         }
         public ActionResult Partial_News()
         {

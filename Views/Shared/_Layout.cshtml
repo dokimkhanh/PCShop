@@ -1,238 +1,373 @@
-﻿<!DOCTYPE html>
-<html>
+﻿@using PCShop.Models.Common
+@{
+    var currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
+    var siteName = SettingsHelper.GetValue("SettingTitle");
+    if (string.IsNullOrWhiteSpace(siteName)) { siteName = "PCShop"; }
+    var defaultSeoTitle = SettingsHelper.GetValue("SeoMetaTitle");
+    if (string.IsNullOrWhiteSpace(defaultSeoTitle)) { defaultSeoTitle = siteName; }
+    var pageTitle = !string.IsNullOrWhiteSpace(ViewBag.Title as string)
+        ? ViewBag.Title + " - " + siteName
+        : defaultSeoTitle;
+    var metaDesc = !string.IsNullOrWhiteSpace(ViewBag.MetaDescription as string)
+        ? ViewBag.MetaDescription as string
+        : SettingsHelper.GetValue("SeoMetaDescription");
+    var metaKeywords = !string.IsNullOrWhiteSpace(ViewBag.MetaKeywords as string)
+        ? ViewBag.MetaKeywords as string
+        : SettingsHelper.GetValue("SeoMetaKeywords");
+    var metaRobots = SettingsHelper.GetValue("SeoRobots");
+    if (string.IsNullOrWhiteSpace(metaRobots)) { metaRobots = "index, follow"; }
+    var metaAuthor = SettingsHelper.GetValue("SeoAuthor");
+    var faviconUrl = SettingsHelper.GetValue("SeoFavicon");
+    if (string.IsNullOrWhiteSpace(faviconUrl)) { faviconUrl = "/favicon.ico"; }
+    var canonicalBase = (SettingsHelper.GetValue("SeoCanonicalBaseUrl") ?? "").TrimEnd('/');
+    var currentPath = Request.Url != null ? Request.Url.AbsolutePath : "/";
+    var canonicalUrl = !string.IsNullOrWhiteSpace(canonicalBase)
+        ? canonicalBase + currentPath
+        : (Request.Url != null ? Request.Url.GetLeftPart(UriPartial.Path) : "");
+    var ogImage = !string.IsNullOrWhiteSpace(ViewBag.OgImage as string)
+        ? ViewBag.OgImage as string
+        : SettingsHelper.GetValue("SeoOgImage");
+    if (!string.IsNullOrWhiteSpace(ogImage) && ogImage.StartsWith("/") && !string.IsNullOrWhiteSpace(canonicalBase))
+    {
+        ogImage = canonicalBase + ogImage;
+    }
+    var googleVerify = SettingsHelper.GetValue("SeoGoogleVerification");
+    var gaId = SettingsHelper.GetValue("SeoGoogleAnalyticsId");
+    var fbAppId = SettingsHelper.GetValue("SeoFacebookAppId");
+
+    var notiText = SettingsHelper.GetValue("Noti");
+    var hotline = SettingsHelper.GetValue("SettingHotline");
+    var email = SettingsHelper.GetValue("SettingEmail");
+    var address = SettingsHelper.GetValue("SettingAddress");
+    var openHours = SettingsHelper.GetValue("SettingOpenHours");
+
+    var fbUrl = SettingsHelper.GetValue("SocialFacebook");
+    var ytUrl = SettingsHelper.GetValue("SocialYoutube");
+    var igUrl = SettingsHelper.GetValue("SocialInstagram");
+    var ttUrl = SettingsHelper.GetValue("SocialTiktok");
+    var zaloUrl = SettingsHelper.GetValue("SocialZalo");
+
+    var isAdminCapable = Request.IsAuthenticated && PermissionHelper.HasPermission(User);
+}
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - PCShop</title>
-    @*@Styles.Render("~/Content/css")*@
-    @*@Scripts.Render("~/bundles/modernizr")*@
-    <meta name="description" content="PCShop - Máy tính, laptop, phụ kiện, gear các loại...">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="~/Content/assets/styles/bootstrap4/bootstrap.min.css">
-    <link href="~/Content/assets/plugins/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" type="text/css" href="~/Content/assets/plugins/OwlCarousel2-2.2.1/owl.carousel.css">
-    <link rel="stylesheet" type="text/css" href="~/Content/assets/plugins/OwlCarousel2-2.2.1/owl.theme.default.css">
-    <link rel="stylesheet" type="text/css" href="~/Content/assets/plugins/OwlCarousel2-2.2.1/animate.css">
-    <link rel="stylesheet" type="text/css" href="~/Content/assets/plugins/jquery-ui-1.12.1.custom/jquery-ui.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@pageTitle</title>
+    @if (!string.IsNullOrWhiteSpace(metaDesc))
+    {
+        <meta name="description" content="@metaDesc" />
+    }
+    @if (!string.IsNullOrWhiteSpace(metaKeywords))
+    {
+        <meta name="keywords" content="@metaKeywords" />
+    }
+    <meta name="robots" content="@metaRobots" />
+    @if (!string.IsNullOrWhiteSpace(metaAuthor))
+    {
+        <meta name="author" content="@metaAuthor" />
+    }
+    @if (!string.IsNullOrWhiteSpace(googleVerify))
+    {
+        <meta name="google-site-verification" content="@googleVerify" />
+    }
+    @if (!string.IsNullOrWhiteSpace(canonicalUrl))
+    {
+        <link rel="canonical" href="@canonicalUrl" />
+    }
+    <link rel="icon" href="@faviconUrl" />
+    <link rel="shortcut icon" href="@faviconUrl" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="@siteName" />
+    <meta property="og:title" content="@pageTitle" />
+    @if (!string.IsNullOrWhiteSpace(metaDesc))
+    {
+        <meta property="og:description" content="@metaDesc" />
+    }
+    @if (!string.IsNullOrWhiteSpace(canonicalUrl))
+    {
+        <meta property="og:url" content="@canonicalUrl" />
+    }
+    @if (!string.IsNullOrWhiteSpace(ogImage))
+    {
+        <meta property="og:image" content="@ogImage" />
+    }
+    @if (!string.IsNullOrWhiteSpace(fbAppId))
+    {
+        <meta property="fb:app_id" content="@fbAppId" />
+    }
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@pageTitle" />
+    @if (!string.IsNullOrWhiteSpace(metaDesc))
+    {
+        <meta name="twitter:description" content="@metaDesc" />
+    }
+    @if (!string.IsNullOrWhiteSpace(ogImage))
+    {
+        <meta name="twitter:image" content="@ogImage" />
+    }
+    @if (!string.IsNullOrWhiteSpace(gaId))
+    {
+        <script async src="https://www.googletagmanager.com/gtag/js?id=@gaId"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', '@gaId');
+        </script>
+    }
 
-    <link rel="stylesheet" type="text/css" href="~/Content/assets/styles/responsive.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/styles/bootstrap4/bootstrap.min.css" />
+    <link href="~/Content/assets/plugins/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/plugins/OwlCarousel2-2.2.1/owl.carousel.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/plugins/OwlCarousel2-2.2.1/owl.theme.default.css" />
+    <link rel="stylesheet" type="text/css" href="~/Content/assets/plugins/jquery-ui-1.12.1.custom/jquery-ui.css" />
     <link href="~/Content/toastr/toastr.css" rel="stylesheet" />
+    <link href="~/Content/PagedList.css" rel="stylesheet" />
+    @{
+        var sfCssPath = Server.MapPath("~/Content/storefront-clean.css");
+        var sfCssVer = System.IO.File.Exists(sfCssPath) ? System.IO.File.GetLastWriteTimeUtc(sfCssPath).Ticks.ToString() : "1";
+    }
+    <link href="~/Content/storefront-clean.css?v=@sfCssVer" rel="stylesheet" />
 
     <script src="~/Content/assets/js/jquery-3.2.1.min.js"></script>
     <script src="~/Scripts/jquery.validate.js"></script>
     <script src="~/Scripts/jquery.validate.unobtrusive.js"></script>
     <script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
     <script src="~/Content/toastr/toastr.min.js"></script>
-    <!-- PageList-->
-    <link href="~/Content/PagedList.css" rel="stylesheet" />
+    <script>
+        $(function () {
+            var afToken = $('input[name="__RequestVerificationToken"]').first().val();
+            if (afToken) {
+                $.ajaxSetup({
+                    beforeSend: function (xhr, settings) {
+                        if (settings.type && settings.type.toUpperCase() === 'POST') {
+                            xhr.setRequestHeader('__RequestVerificationToken', afToken);
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 </head>
-<body>
+<body class="sf-body">
+    @Html.AntiForgeryToken()
 
-    <div class="super_container">
-
-        <!-- Header -->
-
-        <header class="header trans_300">
-
-            <!-- Top Navigation -->
-
-            <div class="top_nav">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="top_nav_left">@PCShop.Models.Common.SettingsHelper.GetValue("Noti")</div>
-                        </div>
-                        <div class="col-md-6 text-right">
-                            <div class="top_nav_right">
-                                <ul class="top_nav_menu">
-
-                                    <!-- Currency / Language / My Account -->
-
-                                    <li class="currency">
-                                        <a href="#">
-                                            VND
-                                            <i class="fa fa-angle-down"></i>
-                                        </a>
-                                        <ul class="currency_selection">
-                                            <li><a href="#">usd</a></li>
-                                        </ul>
-                                    </li>
-                                    <li class="language">
-                                        <a href="#">
-                                            Tiếng Việt
-                                            <i class="fa fa-angle-down"></i>
-                                        </a>
-                                        <ul class="language_selection">
-                                            <li><a href="#">English</a></li>
-                                        </ul>
-                                    </li>
-                                    @if (!Request.IsAuthenticated)
-                                    {
-                                        <li class="account">
-                                            <a href="#">
-                                                Đăng nhập ngay
-                                                <i class="fa fa-angle-down"></i>
-                                            </a>
-                                            <ul class="account_selection">
-                                                <li><a href="/Account/Login"><i class="fa fa-sign-in" aria-hidden="true"></i>Đăng nhập</a></li>
-                                                <li><a href="/Account/Register"><i class="fa fa-user-plus" aria-hidden="true"></i>Đăng ký</a></li>
-                                            </ul>
-                                        </li>
-                                    }
-                                    else
-                                    {
-                                        <li class="account">
-                                            <a href="#">
-                                                Xin chào, @User.Identity.Name
-                                                <i class="fa fa-angle-down"></i>
-                                            </a>
-                                            <ul class="account_selection">
-                                                <li><a href="/Account/Profile"><i class="fa fa-user-circle" aria-hidden="true"></i>Thông tin</a></li>
-                                                <li><a href="javascript:document.getElementById('logOffForm').submit()"><i class="fas fa-sign-out-alt" aria-hidden="true"></i>Đăng xuất</a></li>
-                                            </ul>
-                                        </li>
-                                    }
-
-                                </ul>
-                            </div>
-                        </div>
+    <header class="sf-header">
+        <div class="sf-topbar">
+            <div class="container">
+                <div class="sf-topbar-inner">
+                    <div class="sf-topbar-noti">
+                        @(string.IsNullOrWhiteSpace(notiText) ? "PCShop — PC Gaming, Laptop & Linh kiện chính hãng" : notiText)
                     </div>
-                </div>
-            </div>
-
-            <!-- Main Navigation -->
-
-            <div class="main_nav_container">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-lg-12 text-right">
-                            <div class="logo_container">
-                                <a href="/">colo<span>shop</span></a>
-                            </div>
-                            <nav class="navbar">
-                                <ul class="navbar_menu">
-                                    <li><a href="/">Trang chủ</a></li>
-                                    <li><a href="/san-pham">sản phẩm</a></li>
-                                    <li><a href="/tin-tuc">tin tức</a></li>
-                                    <li><a href="/lien-he">liên hệ</a></li>
-                                </ul>
-                                <ul class="navbar_user">
-                                    <li><a href="#"><i class="fa fa-search" aria-hidden="true"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-user" aria-hidden="true"></i></a></li>
-                                    <li class="checkout">
-                                        <a href="/Cart">
-                                            <i class="fa fa-shopping-cart" aria-hidden="true"></i>
-                                            <span id="checkout_items" class="checkout_items">0</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                                <div class="hamburger_container">
-                                    <i class="fa fa-bars" aria-hidden="true"></i>
-                                </div>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </header>
-
-        <div class="fs_menu_overlay"></div>
-        <div class="hamburger_menu">
-            <div class="hamburger_close"><i class="fa fa-times" aria-hidden="true"></i></div>
-            <div class="hamburger_menu_content text-right">
-                <ul class="menu_top_nav">
-                    <li class="menu_item has-children">
-                        <a href="#">
-                            VND
-                            <i class="fa fa-angle-down"></i>
-                        </a>
-                        <ul class="currency_selection">
-                            <li><a href="#">usd</a></li>
-                        </ul>
-                    </li>
-                    <li class="menu_item has-children">
-                        <a href="#">
-                            Tiếng Việt
-                            <i class="fa fa-angle-down"></i>
-                        </a>
-                        <ul class="language_selection">
-                            <li><a href="#">English</a></li>
-                        </ul>
-                    </li>
-                    @if (!Request.IsAuthenticated)
-                    {
-                        <li class="account">
-                            <a href="#">
-                                Đăng nhập ngay
-                                <i class="fa fa-angle-down"></i>
+                    <div class="sf-account-dropdown">
+                        @if (!Request.IsAuthenticated)
+                        {
+                            <a href="/Account/Login" class="sf-account-trigger">
+                                <i class="fa fa-user-o" aria-hidden="true"></i>
+                                <span>Tài khoản</span>
+                                <i class="fa fa-angle-down" aria-hidden="true"></i>
                             </a>
-                            <ul class="account_selection">
+                            <ul class="sf-account-menu">
                                 <li><a href="/Account/Login"><i class="fa fa-sign-in" aria-hidden="true"></i>Đăng nhập</a></li>
                                 <li><a href="/Account/Register"><i class="fa fa-user-plus" aria-hidden="true"></i>Đăng ký</a></li>
                             </ul>
-                        </li>
-                    }
-                    else
-                    {
-                        <li class="account">
-                            <a href="#">
-                                Xin chào, @User.Identity.Name
-                                <i class="fa fa-angle-down"></i>
+                        }
+                        else
+                        {
+                            <a href="/Account/Profile" class="sf-account-trigger">
+                                <i class="fa fa-user-circle-o" aria-hidden="true"></i>
+                                <span>@User.Identity.Name</span>
+                                <i class="fa fa-angle-down" aria-hidden="true"></i>
                             </a>
-                            <ul class="account_selection">
-                                @if (User.IsInRole("admin"))
+                            <ul class="sf-account-menu">
+                                <li><a href="/Account/Profile"><i class="fa fa-user-circle" aria-hidden="true"></i>Thông tin tài khoản</a></li>
+                                @if (isAdminCapable)
                                 {
-                                    <li><a href="/Admin"><i class="fa fa-user-circle" aria-hidden="true"></i>Quản trị</a></li>
+                                    <li><a href="/Admin"><i class="fa fa-cog" aria-hidden="true"></i>Trang quản trị</a></li>
                                 }
-                                <li><a href="/Account/Profile"><i class="fa fa-user-circle" aria-hidden="true"></i>Thông tin</a></li>
-                                <li><a href="javascript:document.getElementById('logOffForm').submit()"><i class="fas fa-sign-out-alt" aria-hidden="true"></i>Đăng xuất</a></li>
+                                <li><a href="javascript:document.getElementById('logOffForm').submit()"><i class="fa fa-sign-out" aria-hidden="true"></i>Đăng xuất</a></li>
                             </ul>
-                        </li>
-                    }
-                </ul>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Slider -->
-        @RenderBody()
-        <!-- Footer -->
+        <div class="container">
+            <div class="sf-navbar">
+                <a href="/" class="sf-logo">
+                    <span class="sf-logo-mark">P</span>
+                    <span class="sf-logo-text">PC<span>Shop</span></span>
+                </a>
 
-        <footer class="footer">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div class="footer_nav_container d-flex flex-sm-row flex-column align-items-center justify-content-lg-start justify-content-center text-center">
-                            <ul class="footer_nav">
-                                <li><a href="#">Blog</a></li>
-                                <li><a href="#">FAQs</a></li>
-                                <li><a href="contact.html">Contact us</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="footer_social d-flex flex-row align-items-center justify-content-lg-end justify-content-center">
-                            <ul>
-                                <li><a href="#"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
-                                <li><a href="#"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
-                                <li><a href="#"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
-                                <li><a href="#"><i class="fa fa-skype" aria-hidden="true"></i></a></li>
-                                <li><a href="#"><i class="fa fa-pinterest" aria-hidden="true"></i></a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="footer_nav_container">
-                            <div class="cr">©@DateTime.Now.Year. All Rights Reserverd</div>
-                        </div>
-                    </div>
+                <ul class="sf-nav-links">
+                    <li><a href="/" class="@(currentController.Equals("Home", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Trang chủ</a></li>
+                    <li><a href="/san-pham" class="@(currentController.Equals("Product", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Sản phẩm</a></li>
+                    <li><a href="/tin-tuc" class="@(currentController.Equals("News", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Tin tức</a></li>
+                    <li><a href="/lien-he" class="@(currentController.Equals("Contact", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Liên hệ</a></li>
+                </ul>
+
+                <div class="sf-nav-actions">
+                    <form action="/san-pham" method="get" class="sf-header-search">
+                        <input type="search" name="txtSearch" value="@Request["txtSearch"]" placeholder="Tìm PC, laptop, linh kiện..." aria-label="Tìm sản phẩm" />
+                        <button type="submit" aria-label="Tìm kiếm"><i class="fa fa-search" aria-hidden="true"></i></button>
+                    </form>
+
+                    <a href="/Cart" class="sf-cart-btn" aria-label="Giỏ hàng">
+                        <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+                        <span class="sf-cart-label">Giỏ hàng</span>
+                        <span id="checkout_items" class="sf-cart-badge" style="display: none;">0</span>
+                    </a>
+
+                    <button type="button" id="btnOpenDrawer" class="sf-hamburger" aria-label="Mở menu">
+                        <i class="fa fa-bars" aria-hidden="true"></i>
+                    </button>
                 </div>
             </div>
-        </footer>
+        </div>
+    </header>
 
-    </div>
+    <div class="sf-mobile-drawer-backdrop" id="sfDrawerBackdrop"></div>
+    <aside class="sf-mobile-drawer" id="sfMobileDrawer" aria-label="Menu di động">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-3" style="border-bottom: 1px solid var(--sf-border);">
+            <span class="sf-logo-text" style="font-size: 18px;">PC<span>Shop</span></span>
+            <button type="button" id="btnCloseDrawer" class="sf-hamburger" style="display: inline-flex;" aria-label="Đóng menu">
+                <i class="fa fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <form action="/san-pham" method="get" class="mb-3">
+            <div class="input-group">
+                <input type="search" name="txtSearch" class="form-control" placeholder="Tìm sản phẩm..." style="border-radius: 10px 0 0 10px; font-size: 13.5px;" />
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-danger" style="border-radius: 0 10px 10px 0; background: var(--sf-primary); border-color: var(--sf-primary);"><i class="fa fa-search"></i></button>
+                </div>
+            </div>
+        </form>
+
+        <ul class="sf-cat-list mb-4">
+            <li class="@(currentController.Equals("Home", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/">Trang chủ</a></li>
+            <li class="@(currentController.Equals("Product", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/san-pham">Sản phẩm</a></li>
+            <li class="@(currentController.Equals("News", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/tin-tuc">Tin tức</a></li>
+            <li class="@(currentController.Equals("Contact", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/lien-he">Liên hệ</a></li>
+            <li class="@(currentController.Equals("Cart", StringComparison.OrdinalIgnoreCase) ? "active" : "")"><a href="/Cart">Giỏ hàng</a></li>
+        </ul>
+
+        <div class="pt-3" style="border-top: 1px solid var(--sf-border);">
+            @if (!Request.IsAuthenticated)
+            {
+                <a href="/Account/Login" class="sf-btn-primary w-100 mb-2">Đăng nhập</a>
+                <a href="/Account/Register" class="sf-btn-outline w-100">Đăng ký tài khoản</a>
+            }
+            else
+            {
+                <a href="/Account/Profile" class="sf-btn-outline w-100 mb-2">Hồ sơ (@User.Identity.Name)</a>
+                if (isAdminCapable)
+                {
+                    <a href="/Admin" class="sf-btn-outline w-100 mb-2">Trang quản trị</a>
+                }
+                <a href="javascript:document.getElementById('logOffForm').submit()" class="sf-btn-outline w-100" style="color: var(--sf-danger) !important;">Đăng xuất</a>
+            }
+        </div>
+    </aside>
+
+    <main class="sf-main">
+        @RenderBody()
+    </main>
+
+    <footer class="sf-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-5 mb-4 mb-lg-0">
+                    <a href="/" class="sf-logo mb-3">
+                        <span class="sf-logo-mark">P</span>
+                        <span class="sf-logo-text">PC<span>Shop</span></span>
+                    </a>
+                    <p class="mb-3" style="max-width: 380px;">@(string.IsNullOrWhiteSpace(metaDesc) ? "Chuyên cung cấp PC Gaming, Laptop hiệu năng cao và linh kiện máy tính chính hãng." : metaDesc)</p>
+                    <div class="d-flex flex-column" style="gap: 6px; font-size: 13px;">
+                        @if (!string.IsNullOrWhiteSpace(address))
+                        {
+                            <div><i class="fa fa-map-marker mr-2" style="width: 14px; color: var(--sf-primary);"></i>@address</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(hotline))
+                        {
+                            <div><i class="fa fa-phone mr-2" style="width: 14px; color: var(--sf-primary);"></i><a href="tel:@hotline.Replace(" ", "")" style="color: inherit;">@hotline</a></div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(email))
+                        {
+                            <div><i class="fa fa-envelope-o mr-2" style="width: 14px; color: var(--sf-primary);"></i><a href="mailto:@email" style="color: inherit;">@email</a></div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(openHours))
+                        {
+                            <div><i class="fa fa-clock-o mr-2" style="width: 14px; color: var(--sf-primary);"></i>@openHours</div>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-3 mb-4 mb-lg-0">
+                    <h5>Điều hướng</h5>
+                    <ul class="sf-footer-links">
+                        <li><a href="/">Trang chủ</a></li>
+                        <li><a href="/san-pham">Sản phẩm</a></li>
+                        <li><a href="/tin-tuc">Tin tức công nghệ</a></li>
+                        <li><a href="/lien-he">Liên hệ &amp; Bản đồ</a></li>
+                        <li><a href="/Cart">Giỏ hàng của bạn</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-sm-6 col-lg-4">
+                    <h5>Kết nối với chúng tôi</h5>
+                    @{
+                        var hasAnySocial = !string.IsNullOrWhiteSpace(fbUrl)
+                            || !string.IsNullOrWhiteSpace(ytUrl)
+                            || !string.IsNullOrWhiteSpace(igUrl)
+                            || !string.IsNullOrWhiteSpace(ttUrl)
+                            || !string.IsNullOrWhiteSpace(zaloUrl);
+                    }
+                    @if (hasAnySocial)
+                    {
+                        <div class="sf-social-row mb-3">
+                            @if (!string.IsNullOrWhiteSpace(fbUrl))
+                            {
+                                <a href="@fbUrl" target="_blank" rel="noopener noreferrer" class="sf-social-link" title="Facebook" aria-label="Facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(ytUrl))
+                            {
+                                <a href="@ytUrl" target="_blank" rel="noopener noreferrer" class="sf-social-link" title="YouTube" aria-label="YouTube"><i class="fa fa-youtube-play" aria-hidden="true"></i></a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(igUrl))
+                            {
+                                <a href="@igUrl" target="_blank" rel="noopener noreferrer" class="sf-social-link" title="Instagram" aria-label="Instagram"><i class="fa fa-instagram" aria-hidden="true"></i></a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(ttUrl))
+                            {
+                                <a href="@ttUrl" target="_blank" rel="noopener noreferrer" class="sf-social-link" title="TikTok" aria-label="TikTok" style="font-size: 12px; font-weight: 700;">TT</a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(zaloUrl))
+                            {
+                                <a href="@zaloUrl" target="_blank" rel="noopener noreferrer" class="sf-social-link" title="Zalo" aria-label="Zalo" style="font-size: 11px; font-weight: 700;">Zalo</a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p style="font-size: 13px;">Cập nhật liên kết mạng xã hội tại trang quản trị Cấu hình hệ thống.</p>
+                    }
+                    <p style="font-size: 12.5px; margin-bottom: 0;">Thanh toán khi nhận hàng (COD) an toàn, kiểm tra sản phẩm trước khi thanh toán.</p>
+                </div>
+            </div>
+
+            <div class="sf-footer-bottom">
+                <div>&copy; @DateTime.Now.Year @siteName. All Rights Reserved.</div>
+                <div>Hỗ trợ mua hàng &amp; bảo hành chính hãng</div>
+            </div>
+        </div>
+    </footer>
 
     @if (Request.IsAuthenticated)
     {
@@ -250,15 +385,17 @@
     <script src="~/Content/assets/plugins/OwlCarousel2-2.2.1/owl.carousel.js"></script>
     <script src="~/Content/assets/plugins/easing/easing.js"></script>
     <script src="~/Content/assets/js/custom.js"></script>
-    <script src="~/Content/assets/plugins/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
-
-    @*Cái js này để cho phép mvc load ajax*@
-
-    @*@Scripts.Render("~/bundles/jquery")*@
-    @*@Scripts.Render("~/bundles/bootstrap")*@
     <script src="~/Scripts/cart.js"></script>
+    <script>
+        $(function () {
+            $('#btnOpenDrawer').on('click', function () {
+                $('body').addClass('sf-drawer-open');
+            });
+            $('#btnCloseDrawer, #sfDrawerBackdrop').on('click', function () {
+                $('body').removeClass('sf-drawer-open');
+            });
+        });
+    </script>
     @RenderSection("scripts", required: false)
 </body>
 </html>
-
-

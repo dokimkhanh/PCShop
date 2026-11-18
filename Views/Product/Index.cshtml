@@ -1,191 +1,129 @@
 ﻿@model IEnumerable<PCShop.Models.EF.Product>
 @{
     ViewBag.Title = "Sản phẩm";
+    var fallbackImg = Url.Content("~/Content/assets/images/product_1.png");
+    var currentSearch = ViewBag.CurrentSearch as string ?? "";
+    var currentSort = ViewBag.CurrentSort as string ?? "";
+    var productCount = Model != null ? Model.Count() : 0;
 }
 
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/categories_styles.css">
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/categories_responsive.css">
+<div class="container sf-page-wrap">
+    <nav class="sf-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Trang chủ</a>
+        <span class="sep">/</span>
+        <span class="current">Sản phẩm</span>
+    </nav>
 
-<div class="container product_section_container">
     <div class="row">
-        <div class="col product_section clearfix">
-
-            <!-- Breadcrumbs -->
-
-            <div class="breadcrumbs d-flex flex-row align-items-center">
-                <ul>
-                    <li><a href="/">Trang chủ</a></li>
-                    <li class="active"><a href="/san-pham"><i class="fa fa-angle-right" aria-hidden="true"></i>Sản phẩm</a></li>
-                </ul>
+        <aside class="col-lg-3 mb-4">
+            <div class="sf-card p-3" style="position: sticky; top: 124px;">
+                <h2 style="font-size: 15px; font-weight: 700; margin: 4px 8px 12px;">Danh mục sản phẩm</h2>
+                @Html.Action("MenuProductCategoryLeft", "Menu")
             </div>
+        </aside>
 
-            <!-- Sidebar -->
-
-            <div class="sidebar">
-                <div class="sidebar_section">
-                    <div class="sidebar_title">
-                        <h5>Danh Mục</h5>
-                    </div>
-                    @Html.Action("MenuProductCategoryLeft", "Menu")
-                </div>
-
-                <!-- Price Range Filtering -->
-                <div class="sidebar_section">
-                    <div class="sidebar_title">
-                        <h5>Khoảng giá : </h5>
-                    </div>
-                    <p>
-                        <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
-                    </p>
-                    <div id="slider-range"></div>
-                    <div class="filter_button"><span>Lọc</span></div>
-                </div>
-            </div>
-
-            <!-- Main Content -->
-
-            <div class="main_content">
-
-                <!-- Products -->
-
-                <div class="products_iso">
-                    <div class="row">
-                        <div class="col">
-
-                            <!-- Product Sorting -->
-
-                            <div class="product_sorting_container product_sorting_container_top">
-                                <ul class="product_sorting">
-                                    <li>
-                                        <span class="type_sorting_text">Mặc định</span>
-                                        <i class="fa fa-angle-down"></i>
-                                        <ul class="sorting_type">
-                                            <li class="type_sorting_btn" data-isotope-option='{ "sortBy": "original-order" }'><span>Mặc định</span></li>
-                                            <li class="type_sorting_btn" data-isotope-option='{ "sortBy": "price" }'><span>Giá tiền</span></li>
-                                            <li class="type_sorting_btn" data-isotope-option='{ "sortBy": "name" }'><span>Tên sản phẩm</span></li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        <span>Hiển thị</span>
-                                        <span class="num_sorting_text">1</span>
-                                        <i class="fa fa-angle-down"></i>
-                                        <ul class="sorting_num">
-                                            <li class="num_sorting_btn"><span>2</span></li>
-                                            <li class="num_sorting_btn"><span>3</span></li>
-                                            <li class="num_sorting_btn"><span>4</span></li>
-                                            <li class="num_sorting_btn"><span>10</span></li>
-                                            <li class="num_sorting_btn"><span>20</span></li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                                <div class="pages d-flex flex-row align-items-center">
-                                    <div class="page_current">
-                                        <span>1</span>
-                                        <ul class="page_selection">
-                                            <li><a href="#">1</a></li>
-                                            <li><a href="#">2</a></li>
-                                            <li><a href="#">3</a></li>
-                                        </ul>
-                                    </div>
-                                    <div class="page_total"><span>of</span> 3</div>
-                                    <div id="next_page" class="page_next"><a href="#"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></div>
-                                </div>
-
-                            </div>
-
-                            <!-- Product Grid -->
-
-                            <div class="product-grid">
-
-                                <!-- Product 1 -->
-                                @if (Model != null && Model.Any())
-                                {
-                                    foreach (var item in Model)
-                                    {
-                                        var tempImg = item.productImages.FirstOrDefault(x => x.isDefault);
-                                        var img = tempImg != null ? tempImg.image : "";
-                                        var sale = @item.price - @item.priceSale;
-                                        <div class="product-item accessories">
-                                            <div class="product discount product_filter">
-                                                <div class="product_image">
-                                                    <img src="@img" alt="">
-                                                </div>
-                                                <div class="favorite favorite_left"></div>
-                                                @if (Convert.ToInt32(sale) < item.price)
-                                                {
-                                                    <div class="product_bubble product_bubble_right product_bubble_red d-flex flex-column align-items-center">
-                                                        <span>
-                                                            GIẢM GIÁ
-                                                        </span>
-                                                    </div>
-                                                }
-                                                @if (item.isNew)
-                                                {
-                                                    <div class="product_bubble product_bubble_left product_bubble_green d-flex flex-column align-items-center"><span>mới</span></div>
-                                                }
-                                            <div class="product_info">
-                                                <h6 class="product_name"><a href="/san-pham/@item.alias-p@(item.id)">@item.title</a></h6>
-                                                @if (item.priceSale > 0)
-                                                {
-                                                    <div class="product_price">@PCShop.Models.Common.CommonHelper.ConvertMoney(@item.priceSale)đ<span>@PCShop.Models.Common.CommonHelper.ConvertMoney(@item.price)đ</span></div>
-                                                    <div style="display:none;" class="hide_product_price">@item.priceSale</div>
-                                                }
-                                                else
-                                                {
-                                                    <div class="product_price">@PCShop.Models.Common.CommonHelper.ConvertMoney(@item.price)đ</div>
-                                                    <div style="display:none;" class="hide_product_price">@item.price</div>
-                                                }
-                                            </div>
-                                            </div>
-                                            <div class="red_button add_to_cart_button"><a href="#" class="btnAddToCart" data-id="@item.id">Thêm vào giỏ hàng</a></div>
-                                        </div>
-                                    }
-                                }
-                                <!-- END : Product-->
-                            </div>
-
-                            <!-- Product Sorting -->
-
-                            <div class="product_sorting_container product_sorting_container_bottom clearfix">
-                                <ul class="product_sorting">
-                                    <li>
-                                        <span>Show:</span>
-                                        <span class="num_sorting_text">04</span>
-                                        <i class="fa fa-angle-down"></i>
-                                        <ul class="sorting_num">
-                                            <li class="num_sorting_btn"><span>01</span></li>
-                                            <li class="num_sorting_btn"><span>02</span></li>
-                                            <li class="num_sorting_btn"><span>03</span></li>
-                                            <li class="num_sorting_btn"><span>04</span></li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                                <span class="showing_results">Showing 1–3 of 12 results</span>
-                                <div class="pages d-flex flex-row align-items-center">
-                                    <div class="page_current">
-                                        <span>1</span>
-                                        <ul class="page_selection">
-                                            <li><a href="#">1</a></li>
-                                            <li><a href="#">2</a></li>
-                                            <li><a href="#">3</a></li>
-                                        </ul>
-                                    </div>
-                                    <div class="page_total"><span>of</span> 3</div>
-                                    <div id="next_page_1" class="page_next"><a href="#"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></div>
-                                </div>
-
-                            </div>
-
+        <section class="col-lg-9">
+            <div class="sf-card p-3 mb-4">
+                <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 12px;">
+                    <div>
+                        <h1 style="font-size: 20px; font-weight: 700; margin: 0;">
+                            @(string.IsNullOrWhiteSpace(currentSearch) ? "Tất cả sản phẩm" : "Kết quả tìm kiếm")
+                        </h1>
+                        <div style="font-size: 13px; color: var(--sf-muted); margin-top: 2px;">
+                            <span class="sf-tabular">@productCount</span> sản phẩm
+                            @if (!string.IsNullOrWhiteSpace(currentSearch))
+                            {
+                                <span>cho từ khóa "<strong>@currentSearch</strong>"</span>
+                                <a href="/san-pham" class="ml-2" style="color: var(--sf-primary); font-weight: 500;">Xóa bộ lọc</a>
+                            }
                         </div>
                     </div>
+
+                    <form action="/san-pham" method="get" class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+                        <input type="search" name="txtSearch" value="@currentSearch" class="form-control" placeholder="Tìm sản phẩm..." style="width: 210px; height: 38px; border-radius: 10px; font-size: 13px; border-color: var(--sf-border-strong);" />
+                        <select name="sort" onchange="this.form.submit()" class="form-control" aria-label="Sắp xếp sản phẩm" style="width: 175px; height: 38px; border-radius: 10px; font-size: 13px; border-color: var(--sf-border-strong);">
+                            <option value="" @(string.IsNullOrEmpty(currentSort) ? "selected" : "")>Mới nhất</option>
+                            <option value="price_asc" @(currentSort == "price_asc" ? "selected" : "")>Giá: Thấp đến cao</option>
+                            <option value="price_desc" @(currentSort == "price_desc" ? "selected" : "")>Giá: Cao đến thấp</option>
+                            <option value="name_asc" @(currentSort == "name_asc" ? "selected" : "")>Tên: A - Z</option>
+                        </select>
+                        <button type="submit" class="sf-btn-primary" style="min-height: 38px; padding: 0 14px;">
+                            <i class="fa fa-search" aria-hidden="true"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
-        </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="sf-product-grid-3">
+                    @foreach (var item in Model)
+                    {
+                        var strImg = fallbackImg;
+                        if (item.productImages != null)
+                        {
+                            var img = item.productImages.FirstOrDefault(x => x.isDefault) ?? item.productImages.FirstOrDefault();
+                            if (img != null && !string.IsNullOrWhiteSpace(img.image))
+                            {
+                                strImg = img.image;
+                            }
+                        }
+                        var hasSale = item.priceSale > 0 && item.priceSale < item.price;
+                        var discountPct = hasSale && item.price > 0 ? (int)System.Math.Round((decimal)(item.price - item.priceSale) * 100 / item.price) : 0;
+                        var catTitle = item.productCategory != null ? item.productCategory.title : "Sản phẩm";
+
+                        <article class="sf-product-card">
+                            <a href="/san-pham/@item.alias-p@(item.id)" class="sf-product-thumb">
+                                <div class="sf-badge-wrap">
+                                    <div>
+                                        @if (item.isNew)
+                                        {
+                                            <span class="sf-badge sf-badge-new">Mới</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        @if (hasSale && discountPct > 0)
+                                        {
+                                            <span class="sf-badge sf-badge-sale">-@discountPct%</span>
+                                        }
+                                    </div>
+                                </div>
+                                <img src="@strImg" onerror="this.onerror=null;this.src='@fallbackImg';" alt="@item.title" />
+                            </a>
+                            <div class="sf-product-body">
+                                <div class="sf-product-cat">@catTitle</div>
+                                <h3 class="sf-product-title">
+                                    <a href="/san-pham/@item.alias-p@(item.id)" title="@item.title">@item.title</a>
+                                </h3>
+                                <div class="sf-price-row">
+                                    @if (hasSale)
+                                    {
+                                        <span class="sf-price-now">@PCShop.Models.Common.CommonHelper.ConvertMoney(item.priceSale) đ</span>
+                                        <span class="sf-price-old">@PCShop.Models.Common.CommonHelper.ConvertMoney(item.price) đ</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="sf-price-now">@PCShop.Models.Common.CommonHelper.ConvertMoney(item.price) đ</span>
+                                    }
+                                </div>
+                                <a href="#" class="sf-btn-cart btnAddToCart" data-id="@item.id">
+                                    <i class="fa fa-cart-plus" aria-hidden="true"></i>
+                                    <span>Thêm vào giỏ</span>
+                                </a>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="sf-card p-5 text-center">
+                    <div class="mb-3" style="font-size: 36px; color: #d4d4d8;"><i class="fa fa-search" aria-hidden="true"></i></div>
+                    <h3 style="font-size: 17px; font-weight: 600; margin-bottom: 6px;">Không tìm thấy sản phẩm phù hợp</h3>
+                    <p style="color: var(--sf-muted); margin-bottom: 18px;">Hãy thử tìm với từ khóa khác hoặc xem toàn bộ danh mục sản phẩm hiện có.</p>
+                    <a href="/san-pham" class="sf-btn-primary">Xem tất cả sản phẩm</a>
+                </div>
+            }
+        </section>
     </div>
 </div>
-
-@section scripts{
-    <script src="~/Content/assets/js/categories_custom.js"></script>
-    <script src="~/Content/assets/plugins/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
-    <script src="~/Content/assets/js/categories_custom.js"></script>
-}

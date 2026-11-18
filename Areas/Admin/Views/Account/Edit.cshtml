@@ -1,0 +1,103 @@
+﻿@model PCShop.Models.EditAccountViewModel
+@{
+    ViewBag.Title = "Sửa tài khoản";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var selectedSet = new HashSet<string>(Model.SelectedRoles ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1>Sửa tài khoản</h1>
+            <a href="/Admin/Account" class="btn btn-default btn-sm">
+                <i class="fas fa-arrow-left"></i>
+                <span>Quay lại</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card">
+            @using (Html.BeginForm("Edit", "Account", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(x => x.Id)
+                @Html.HiddenFor(x => x.UserName)
+                <div class="card-body">
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 px-3 mb-3", @style = "border-radius: 10px; font-size: 13px;" })
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Tên đăng nhập</label>
+                                <input type="text" class="form-control" value="@Model.UserName" readonly style="background: var(--background);" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="FullName">Họ và tên <span class="text-danger">*</span></label>
+                                @Html.TextBoxFor(x => x.FullName, new { @class = "form-control", @placeholder = "Nhập họ và tên" })
+                                @Html.ValidationMessageFor(x => x.FullName, null, new { @class = "text-danger small" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="Email">Email <span class="text-danger">*</span></label>
+                                @Html.TextBoxFor(x => x.Email, new { @class = "form-control", @placeholder = "email@domain.com" })
+                                @Html.ValidationMessageFor(x => x.Email, null, new { @class = "text-danger small" })
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="Phone">Số điện thoại</label>
+                                @Html.TextBoxFor(x => x.Phone, new { @class = "form-control tabular-nums", @placeholder = "Số điện thoại" })
+                                @Html.ValidationMessageFor(x => x.Phone, null, new { @class = "text-danger small" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="max-width: 480px;">
+                        <label for="NewPassword">Đổi mật khẩu mới (để trống nếu giữ nguyên)</label>
+                        @Html.PasswordFor(x => x.NewPassword, new { @class = "form-control", @placeholder = "Tối thiểu 6 ký tự", @autocomplete = "new-password" })
+                        @Html.ValidationMessageFor(x => x.NewPassword, null, new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="pt-3 mt-3" style="border-top: 1px solid var(--border);">
+                        <label class="mb-1">Nhóm quyền của tài khoản <span class="text-danger">*</span></label>
+                        <div style="font-size: 12.5px; color: var(--muted); margin-bottom: 12px;">Tích chọn các nhóm quyền áp dụng cho tài khoản này (quyền thao tác sẽ gộp từ tất cả nhóm đã chọn)</div>
+                        <div class="row">
+                            @if (Model.AvailableRoles != null)
+                            {
+                                var idx = 0;
+                                foreach (var roleName in Model.AvailableRoles)
+                                {
+                                    var isChecked = selectedSet.Contains(roleName);
+                                    <div class="col-sm-6 col-md-4 mb-2">
+                                        <div style="border: 1px solid var(--border-strong); border-radius: 10px; padding: 10px 14px; background: var(--surface-hover);">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="role_@idx" name="SelectedRoles" value="@roleName" @(isChecked ? "checked" : "") />
+                                                <label class="custom-control-label" for="role_@idx" style="font-weight: 500; cursor: pointer;">@roleName</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    idx++;
+                                }
+                            }
+                        </div>
+                        @Html.ValidationMessage("SelectedRoles", null, new { @class = "text-danger small" })
+                    </div>
+                </div>
+
+                <div class="card-footer d-flex align-items-center justify-content-end" style="gap: 8px;">
+                    <a href="/Admin/Account" class="btn btn-default">Huỷ</a>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            }
+        </div>
+    </div>
+</section>

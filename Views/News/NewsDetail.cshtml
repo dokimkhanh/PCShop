@@ -1,32 +1,62 @@
 ﻿@model PCShop.Models.EF.News
-
 @{
-    ViewBag.Title = ViewBag.Tieude;
+    ViewBag.Title = !string.IsNullOrWhiteSpace(Model.title) ? Model.title : (ViewBag.Tieude as string ?? "Tin tức");
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/main_styles.css">
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/contact_styles.css">
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/contact_responsive.css">
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/bootstrap4/bootstrap.min.css">
+<div class="container sf-page-wrap">
+    <nav class="sf-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Trang chủ</a>
+        <span class="sep">/</span>
+        <a href="/tin-tuc">Tin tức</a>
+        <span class="sep">/</span>
+        <span class="current">@Model.title</span>
+    </nav>
 
-<div class="container contact_container">
-    <div class="row">
-        <div class="col">
-            <div class="breadcrumbs d-flex flex-row align-items-center">
-                <ul>
-                    <li><a href="/">Trang chủ</a></li>
-                    <li class="active"><a href="/tin-tuc"><i class="fa fa-angle-right" aria-hidden="true"></i>Tin tức</a></li>
-                </ul>
+    <article class="sf-card p-4 p-md-5 mx-auto" style="max-width: 860px;">
+        <header class="mb-4 pb-3" style="border-bottom: 1px solid var(--sf-border);">
+            <div class="d-flex flex-wrap align-items-center mb-2" style="gap: 12px; font-size: 13px; color: var(--sf-muted);">
+                <span class="sf-tabular">
+                    <i class="fa fa-calendar-o mr-1" aria-hidden="true"></i>
+                    @Model.createdDate.ToString("dd/MM/yyyy HH:mm")
+                </span>
+                @if (!string.IsNullOrWhiteSpace(Model.createdBy))
+                {
+                    <span>
+                        <i class="fa fa-user-o mr-1" aria-hidden="true"></i>
+                        @Model.createdBy
+                    </span>
+                }
             </div>
 
-        </div>
-    </div>
+            <h1 style="font-size: 26px; font-weight: 700; line-height: 1.35; margin: 0 0 10px;">@Model.title</h1>
 
-    <div class="row">
-        <div class="col-md-12">
+            @if (!string.IsNullOrWhiteSpace(Model.description))
+            {
+                <p style="font-size: 15px; color: var(--sf-muted); line-height: 1.6; margin: 0;">@Model.description</p>
+            }
+        </header>
+
+        @if (!string.IsNullOrWhiteSpace(Model.image))
+        {
+            <div class="mb-4" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--sf-border); background: #fafafa;">
+                <img src="@Model.image" alt="@Model.title" style="width: 100%; max-height: 440px; object-fit: cover; display: block;" />
+            </div>
+        }
+
+        <div class="sf-rich-content">
             @Html.Raw(Model.detail)
         </div>
-    </div>
 
+        <footer class="mt-5 pt-4 d-flex flex-wrap align-items-center justify-content-between" style="gap: 12px; border-top: 1px solid var(--sf-border);">
+            <a href="/tin-tuc" class="sf-btn-outline">
+                <i class="fa fa-angle-left" aria-hidden="true"></i>
+                <span>Quay lại tin tức</span>
+            </a>
+            <a href="/san-pham" class="sf-btn-primary">
+                <span>Khám phá sản phẩm</span>
+                <i class="fa fa-arrow-right" aria-hidden="true"></i>
+            </a>
+        </footer>
+    </article>
 </div>

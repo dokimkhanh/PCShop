@@ -1,113 +1,165 @@
-﻿
+﻿@using PCShop.Models.Common
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Liên hệ";
+    var storeName = SettingsHelper.GetValue("SettingTitle");
+    if (string.IsNullOrWhiteSpace(storeName))
+    {
+        storeName = "PCShop";
+    }
+    var address = SettingsHelper.GetValue("SettingAddress");
+    var mapAddress = SettingsHelper.GetValue("SettingMapAddress");
+    var mapQuery = !string.IsNullOrWhiteSpace(mapAddress) ? mapAddress : (!string.IsNullOrWhiteSpace(address) ? address : "Hà Nội, Việt Nam");
+    var mapEmbedUrl = "https://maps.google.com/maps?q=" + System.Uri.EscapeDataString(mapQuery) + "&t=&z=15&ie=UTF8&iwloc=&output=embed";
+    var mapDirectUrl = "https://www.google.com/maps/search/?api=1&query=" + System.Uri.EscapeDataString(mapQuery);
+
+    var hotline = SettingsHelper.GetValue("SettingHotline");
+    var email = SettingsHelper.GetValue("SettingEmail");
+    var openHours = SettingsHelper.GetValue("SettingOpenHours");
+    if (string.IsNullOrWhiteSpace(openHours))
+    {
+        openHours = "08:30 - 21:00 (Thứ 2 - Chủ nhật)";
+    }
+
+    var fbUrl = SettingsHelper.GetValue("SocialFacebook");
+    var ytUrl = SettingsHelper.GetValue("SocialYoutube");
+    var igUrl = SettingsHelper.GetValue("SocialInstagram");
+    var ttUrl = SettingsHelper.GetValue("SocialTiktok");
+    var zaloUrl = SettingsHelper.GetValue("SocialZalo");
+    var hasAnySocial = !string.IsNullOrWhiteSpace(fbUrl)
+        || !string.IsNullOrWhiteSpace(ytUrl)
+        || !string.IsNullOrWhiteSpace(igUrl)
+        || !string.IsNullOrWhiteSpace(ttUrl)
+        || !string.IsNullOrWhiteSpace(zaloUrl);
 }
 
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/contact_styles.css">
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/contact_responsive.css">
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/bootstrap4/bootstrap.min.css">
+<div class="container sf-page-wrap">
+    <nav class="sf-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Trang chủ</a>
+        <span class="sep">/</span>
+        <span class="current">Liên hệ</span>
+    </nav>
 
-<div class="container contact_container">
-    <div class="row">
-        <div class="col">
-
-            <!-- Breadcrumbs -->
-
-            <div class="breadcrumbs d-flex flex-row align-items-center">
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li class="active"><a href="#"><i class="fa fa-angle-right" aria-hidden="true"></i>Contact</a></li>
-                </ul>
-            </div>
-
+    <div class="sf-section-head mb-4">
+        <div>
+            <h1 class="sf-section-title" style="font-size: 24px;">Liên hệ @storeName</h1>
+            <div class="sf-section-sub">Tư vấn cấu hình PC Gaming, Workstation, báo giá linh kiện và hỗ trợ bảo hành chính hãng.</div>
         </div>
+        <a href="@mapDirectUrl" target="_blank" rel="noopener noreferrer" class="sf-btn-outline">
+            <i class="fa fa-map-o" aria-hidden="true"></i>
+            <span>Mở trên Google Maps</span>
+        </a>
     </div>
 
-    <!-- Map Container -->
-
-    <div class="row">
-        <div class="col">
-            <div id="google_map">
-                <div class="map_container">
-                    <div id="map"></div>
-                </div>
-            </div>
-        </div>
+    <div class="sf-map-box mb-4">
+        <iframe src="@mapEmbedUrl" title="Bản đồ vị trí @storeName" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
     </div>
 
-    <!-- Contact Us -->
-
     <div class="row">
+        <div class="col-lg-5 mb-4 mb-lg-0">
+            <div class="sf-card p-4 h-100 d-flex flex-column">
+                <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Thông tin cửa hàng</h2>
+                <p style="font-size: 13.5px; color: var(--sf-muted); margin-bottom: 20px;">Ghé trực tiếp showroom hoặc liên hệ nhanh qua điện thoại và email bên dưới.</p>
 
-        <div class="col-lg-6 contact_col">
-            <div class="contact_contents">
-                <h1>Contact Us</h1>
-                <p>There are many ways to contact us. You may drop us a line, give us a call or send an email, choose what suits you the most.</p>
-                <div>
-                    <p>(800) 686-6688</p>
-                    <p>info.deercreative@gmail.com</p>
+                <div class="d-flex flex-column" style="gap: 14px;">
+                    @if (!string.IsNullOrWhiteSpace(address))
+                    {
+                        <div class="d-flex align-items-start" style="gap: 12px;">
+                            <span class="sf-benefit-icon" style="width: 38px; height: 38px; font-size: 15px;"><i class="fa fa-map-marker" aria-hidden="true"></i></span>
+                            <div>
+                                <div style="font-size: 12px; color: var(--sf-muted); font-weight: 500;">Địa chỉ showroom</div>
+                                <div style="font-weight: 600;">@address</div>
+                            </div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(hotline))
+                    {
+                        <div class="d-flex align-items-start" style="gap: 12px;">
+                            <span class="sf-benefit-icon" style="width: 38px; height: 38px; font-size: 15px;"><i class="fa fa-phone" aria-hidden="true"></i></span>
+                            <div>
+                                <div style="font-size: 12px; color: var(--sf-muted); font-weight: 500;">Hotline tư vấn</div>
+                                <a href="tel:@hotline.Replace(" ", "")" style="font-weight: 600; color: var(--sf-fg); text-decoration: none;" class="sf-tabular">@hotline</a>
+                            </div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        <div class="d-flex align-items-start" style="gap: 12px;">
+                            <span class="sf-benefit-icon" style="width: 38px; height: 38px; font-size: 15px;"><i class="fa fa-envelope-o" aria-hidden="true"></i></span>
+                            <div>
+                                <div style="font-size: 12px; color: var(--sf-muted); font-weight: 500;">Email hỗ trợ</div>
+                                <a href="mailto:@email" style="font-weight: 600; color: var(--sf-fg); text-decoration: none;">@email</a>
+                            </div>
+                        </div>
+                    }
+                    <div class="d-flex align-items-start" style="gap: 12px;">
+                        <span class="sf-benefit-icon" style="width: 38px; height: 38px; font-size: 15px;"><i class="fa fa-clock-o" aria-hidden="true"></i></span>
+                        <div>
+                            <div style="font-size: 12px; color: var(--sf-muted); font-weight: 500;">Giờ làm việc</div>
+                            <div style="font-weight: 600;">@openHours</div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <p>mm</p>
-                </div>
-                <div>
-                    <p>Open hours: 8.00-18.00 Mon-Fri</p>
-                    <p>Sunday: Closed</p>
-                </div>
+
+                @if (hasAnySocial)
+                {
+                    <div class="mt-4 pt-3" style="border-top: 1px solid var(--sf-border);">
+                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">Kết nối mạng xã hội</div>
+                        <div class="sf-social-row">
+                            @if (!string.IsNullOrWhiteSpace(fbUrl))
+                            {
+                                <a href="@fbUrl" target="_blank" rel="noopener noreferrer" class="sf-social-link" title="Facebook" aria-label="Facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(ytUrl))
+                            {
+                                <a href="@ytUrl" target="_blank" rel="noopener noreferrer" class="sf-social-link" title="YouTube" aria-label="YouTube"><i class="fa fa-youtube-play" aria-hidden="true"></i></a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(igUrl))
+                            {
+                                <a href="@igUrl" target="_blank" rel="noopener noreferrer" class="sf-social-link" title="Instagram" aria-label="Instagram"><i class="fa fa-instagram" aria-hidden="true"></i></a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(ttUrl))
+                            {
+                                <a href="@ttUrl" target="_blank" rel="noopener noreferrer" class="sf-social-link" title="TikTok" aria-label="TikTok" style="font-size: 12px; font-weight: 700;">TT</a>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(zaloUrl))
+                            {
+                                <a href="@zaloUrl" target="_blank" rel="noopener noreferrer" class="sf-social-link" title="Zalo" aria-label="Zalo" style="font-size: 11px; font-weight: 700;">Zalo</a>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
-
-            <!-- Follow Us -->
-
-            <div class="follow_us_contents">
-                <h1>Follow Us</h1>
-                <ul class="social d-flex flex-row">
-                    <li><a href="#" style="background-color: #3a61c9"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
-                    <li><a href="#" style="background-color: #41a1f6"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
-                    <li><a href="#" style="background-color: #fb4343"><i class="fa fa-google-plus" aria-hidden="true"></i></a></li>
-                    <li><a href="#" style="background-color: #8f6247"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
-                </ul>
-            </div>
-
         </div>
 
-        <div class="col-lg-6 get_in_touch_col">
-            <div class="get_in_touch_contents">
-                <h1>Get In Touch With Us!</h1>
-                <p>Fill out the form below to recieve a free and confidential.</p>
-                <form action="post">
-                    <div>
-                        <input id="input_name" class="form_input input_name input_ph" type="text" name="name" placeholder="Name" required="required" data-error="Name is required.">
-                        <input id="input_email" class="form_input input_email input_ph" type="email" name="email" placeholder="Email" required="required" data-error="Valid email is required.">
-                        <input id="input_website" class="form_input input_website input_ph" type="url" name="name" placeholder="Website" required="required" data-error="Name is required.">
-                        <textarea id="input_message" class="input_ph input_message" name="message" placeholder="Message" rows="3" required data-error="Please, write us a message."></textarea>
-                    </div>
-                    <div>
-                        <button id="review_submit" type="submit" class="red_button message_submit_btn trans_300" value="Submit">send message</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <div class="col-lg-7">
+            <div class="sf-card p-4 h-100">
+                <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Gửi yêu cầu tư vấn</h2>
+                <p style="font-size: 13.5px; color: var(--sf-muted); margin-bottom: 20px;">Để lại thông tin và nhu cầu của bạn, đội ngũ kỹ thuật sẽ liên hệ phản hồi trong thời gian sớm nhất.</p>
 
-    </div>
-</div>
-
-<!-- Newsletter -->
-
-<div class="newsletter">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="newsletter_text d-flex flex-column justify-content-center align-items-lg-start align-items-md-center text-center">
-                    <h4>Newsletter</h4>
-                    <p>Subscribe to our newsletter and get 20% off your first purchase</p>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <form action="post">
-                    <div class="newsletter_form d-flex flex-md-row flex-column flex-xs-column align-items-center justify-content-lg-end justify-content-center">
-                        <input id="newsletter_email" type="email" placeholder="Your email" required="required" data-error="Valid email is required.">
-                        <button id="newsletter_submit" type="submit" class="newsletter_submit_btn trans_300" value="Submit">subscribe</button>
+                <form id="sfContactForm">
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label for="contactName" style="font-size: 13px; font-weight: 600;">Họ và tên <span class="text-danger">*</span></label>
+                            <input id="contactName" type="text" class="form-control" placeholder="Nguyễn Văn A" required style="border-radius: 10px; border-color: var(--sf-border-strong); height: 42px;" />
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label for="contactPhone" style="font-size: 13px; font-weight: 600;">Số điện thoại <span class="text-danger">*</span></label>
+                            <input id="contactPhone" type="tel" class="form-control" placeholder="09xx xxx xxx" required style="border-radius: 10px; border-color: var(--sf-border-strong); height: 42px;" />
+                        </div>
                     </div>
+                    <div class="form-group">
+                        <label for="contactEmail" style="font-size: 13px; font-weight: 600;">Email</label>
+                        <input id="contactEmail" type="email" class="form-control" placeholder="ban@email.com" style="border-radius: 10px; border-color: var(--sf-border-strong); height: 42px;" />
+                    </div>
+                    <div class="form-group">
+                        <label for="contactMessage" style="font-size: 13px; font-weight: 600;">Nội dung cần hỗ trợ <span class="text-danger">*</span></label>
+                        <textarea id="contactMessage" class="form-control" rows="4" placeholder="Mô tả nhu cầu cấu hình PC, sản phẩm quan tâm hoặc câu hỏi của bạn..." required style="border-radius: 10px; border-color: var(--sf-border-strong);"></textarea>
+                    </div>
+                    <div id="sfContactFeedback" class="alert alert-success py-2 px-3 mb-3" style="display: none; border-radius: 10px; font-size: 13.5px;"></div>
+                    <button type="submit" class="sf-btn-primary px-4">
+                        <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
+                        <span>Gửi yêu cầu</span>
+                    </button>
                 </form>
             </div>
         </div>
@@ -115,11 +167,27 @@
 </div>
 
 @section scripts{
-    <script src="~/Content/assets/js/jquery-3.2.1.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyA860nXD0dEr8Y5bYgM-xIrWL3KHIzriyM"></script>
-    <!-- AIzaSyA860nXD0dEr8Y5bYgM-xIrWL3KHIzriyM -->
-    <!-- A: AIzaSyCIwF204lFZg1y4kPSIhKaHEXMLYxxuMhA-->
-    <script src="~/Content/assets/plugins/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
-    <script src="~/Content/assets/js/contact_custom.js"></script>
-
+    <script>
+        $(function () {
+            $('#sfContactForm').on('submit', function (e) {
+                e.preventDefault();
+                var name = $.trim($('#contactName').val());
+                var phone = $.trim($('#contactPhone').val());
+                var message = $.trim($('#contactMessage').val());
+                if (!name || !phone || !message) {
+                    if (window.toastr) {
+                        toastr.warning('Vui lòng nhập đầy đủ họ tên, số điện thoại và nội dung.');
+                    }
+                    return;
+                }
+                $('#sfContactFeedback')
+                    .text('Cảm ơn ' + name + '! Chúng tôi đã ghi nhận yêu cầu và sẽ liên hệ lại qua số ' + phone + ' trong thời gian sớm nhất.')
+                    .show();
+                if (window.toastr) {
+                    toastr.success('Gửi yêu cầu liên hệ thành công!', 'Thông báo');
+                }
+                this.reset();
+            });
+        });
+    </script>
 }

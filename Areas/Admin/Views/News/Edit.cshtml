@@ -4,106 +4,155 @@
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
-
 <section class="content-header">
     <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1>Thêm danh mục</h1>
-            </div>
+        <div class="d-flex align-items-center justify-content-between">
+            <h1>Sửa tin tức</h1>
+            <a href="/Admin/News" class="btn btn-default btn-sm">
+                <i class="fas fa-arrow-left"></i>
+                <span>Quay lại</span>
+            </a>
         </div>
-    </div><!-- /.container-fluid -->
+    </div>
 </section>
 
 <section class="content">
     <div class="container-fluid">
-        <!-- SELECT2 EXAMPLE -->
-        <div class="card card-default">
-            <div class="card-header">
-                <h3 class="card-title">Sửa nội dung tin tức</h3>
-
-                <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-            <!-- /.card-header -->
+        <div class="card">
             @using (Html.BeginForm("Edit", "News", FormMethod.Post, new { }))
             {
                 @Html.AntiForgeryToken()
-                @Html.ValidationSummary(false)
                 @Html.HiddenFor(x => x.id)
                 @Html.HiddenFor(x => x.createdDate)
                 @Html.HiddenFor(x => x.createdBy)
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="title">Tiêu đề</label>
-                                @Html.TextBoxFor(x => x.title, new { @class = "form-control", @placeholder = "Khuyến mãi tháng 10" })
-                                @Html.ValidationMessageFor(x => x.title, null, new { @class = "text-danger" })
-                                @*<input type="text" class="form-control" id="exampleInputEmail1" >*@
-                            </div>
-                            <div class="form-group">
-                                <label for="description">Mô tả</label>
-                                @Html.TextBoxFor(x => x.description, new { @class = "form-control", @placeholder = "Khuyến mãi 50% trong tháng 10" })
-                                @Html.ValidationMessageFor(x => x.description, null, new { @class = "text-danger" })
-                                @*<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Danh mục phụ kiện">*@
-                            </div>
-                            <div class="form-group">
-                                <label for="description">Chi tiết</label>
-                                @Html.TextAreaFor(x => x.detail, new { @class = "form-control", @id = "txtDetail", @placeholder = "Nhân dịp mùa hè, PCShop tưng bừng..." })
-                                @Html.ValidationMessageFor(x => x.detail, null, new { @class = "text-danger" })
-                                @*<input type="text" class="form-control" id="exampleInputEmail1" placeholder="Danh mục phụ kiện">*@
-                            </div>
-                            <div class="form-group">
-                                <label for="description">Ảnh bìa</label>
-                                <div class="input-group">
-                                    <div class="custom-file">
-                                        @Html.TextBoxFor(x => x.image, new { @class = "form-control", @id = "txtImg" })
-                                        @Html.ValidationMessageFor(x => x.image, null, new { @class = "text-danger" })
-                                    </div>
-                                    <div class="input-group-append">
-                                        <input class="btn btn-primary" onclick="BrowserServer('txtImg');" value="Upload" />
-                                    </div>
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 px-3 mb-3", @style = "border-radius: 10px; font-size: 13px;" })
+
+                    <div class="form-group">
+                        <label for="title">Tiêu đề <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(x => x.title, new { @class = "form-control", @placeholder = "Tiêu đề bài viết" })
+                        @Html.ValidationMessageFor(x => x.title, null, new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Mô tả ngắn</label>
+                        @Html.TextBoxFor(x => x.description, new { @class = "form-control", @placeholder = "Mô tả ngắn" })
+                        @Html.ValidationMessageFor(x => x.description, null, new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ảnh bìa</label>
+                        @Html.HiddenFor(x => x.image, new { @id = "txtImg" })
+                        <input type="file" id="coverFileInput" accept="image/*" style="display: none;" />
+                        <div id="coverDropzone" class="upload-dropzone" style="padding: 18px 16px;">
+                            <div class="upload-dropzone-icon"><i class="fas fa-image"></i></div>
+                            <div class="upload-dropzone-title">Kéo thả ảnh bìa hoặc nhấn để chọn ảnh</div>
+                            <div class="upload-dropzone-hint">JPG, PNG, WEBP — tối đa 5 MB</div>
+                        </div>
+                        <div id="coverPreviewWrap" class="cover-preview-wrap mt-2 d-none">
+                            <img id="coverPreviewImg" class="cover-preview-img" src="" alt="Ảnh bìa" />
+                            <div style="flex: 1; min-width: 0;">
+                                <div id="coverPreviewUrl" style="font-size: 12.5px; color: var(--muted); word-break: break-all;"></div>
+                                <div class="mt-2 d-flex" style="gap: 8px;">
+                                    <button type="button" id="btnChangeCover" class="btn btn-default btn-sm">Đổi ảnh</button>
+                                    <button type="button" id="btnRemoveCover" class="btn btn-danger btn-sm">Xoá ảnh</button>
                                 </div>
                             </div>
-                            <!-- /.form-group -->
                         </div>
+                        @Html.ValidationMessageFor(x => x.image, null, new { @class = "text-danger small" })
                     </div>
-                    <!-- /.row -->
+
+                    <div class="form-group mb-0">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap: 8px;">
+                            <label for="txtDetail" class="mb-0">Nội dung chi tiết</label>
+                            <div class="d-flex align-items-center" style="gap: 10px;">
+                                <span style="font-size: 12px; color: var(--muted);">Kéo thả hoặc dán ảnh (Ctrl+V) trực tiếp vào khung soạn thảo</span>
+                                <button type="button" id="btnInsertEditorImage" class="btn btn-default btn-sm">
+                                    <i class="fas fa-image"></i>
+                                    <span>Chèn ảnh nhanh</span>
+                                </button>
+                            </div>
+                        </div>
+                        @Html.TextAreaFor(x => x.detail, new { @class = "form-control", @id = "txtDetail" })
+                        @Html.ValidationMessageFor(x => x.detail, null, new { @class = "text-danger small" })
+                    </div>
                 </div>
-                <!-- /.card-body -->
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary">Sửa nội dung</button>
+
+                <div class="card-footer d-flex align-items-center justify-content-end" style="gap: 8px;">
+                    <a href="/Admin/News" class="btn btn-default">Huỷ</a>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                 </div>
             }
         </div>
-        <!-- /.card -->
     </div>
-    <!-- /.container-fluid -->
 </section>
 
-@section scripts{
+@section scripts {
     <script>
-
         $(document).ready(function () {
-            CKEDITOR.replace('txtDetail', {
-                customConfig: '/content/ckeditor/config.js',
-                extraAllowedContent: 'span',
-            });
-        });
+            window.initAdminEditor('txtDetail', '#btnInsertEditorImage');
 
-        function BrowserServer(field) {
-            var finder = new CKFinder();
-            finder.selectActionFunction = function (fileUrl) {
-                document.getElementById(field).value = fileUrl;
-            };
-            finder.popup();
-        }
+            function syncCoverPreview(url) {
+                $('#txtImg').val(url || '');
+                if (url) {
+                    $('#coverPreviewImg').attr('src', url);
+                    $('#coverPreviewUrl').text(url);
+                    $('#coverPreviewWrap').removeClass('d-none');
+                    $('#coverDropzone').addClass('d-none');
+                } else {
+                    $('#coverPreviewWrap').addClass('d-none');
+                    $('#coverDropzone').removeClass('d-none');
+                }
+            }
+
+            function uploadCover(file) {
+                if (!file) {
+                    return;
+                }
+                var formData = new FormData();
+                formData.append('files', file);
+                $.ajax({
+                    url: '/Admin/Upload/Image',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        if (res.success && res.urls && res.urls.length > 0) {
+                            syncCoverPreview(res.urls[0]);
+                            toastr.success('Đã tải ảnh bìa lên');
+                        } else {
+                            toastr.error(res.message || 'Không thể tải ảnh bìa.');
+                        }
+                    },
+                    error: function () {
+                        toastr.error('Lỗi kết nối khi tải ảnh.');
+                    },
+                    complete: function () {
+                        $('#coverFileInput').val('');
+                    }
+                });
+            }
+
+            var dz = $('#coverDropzone');
+            dz.on('click', function () { $('#coverFileInput').trigger('click'); });
+            $('#btnChangeCover').on('click', function () { $('#coverFileInput').trigger('click'); });
+            $('#btnRemoveCover').on('click', function () { syncCoverPreview(''); });
+            $('#coverFileInput').on('change', function () {
+                if (this.files && this.files.length > 0) {
+                    uploadCover(this.files[0]);
+                }
+            });
+            dz.on('dragover dragenter', function (e) { e.preventDefault(); dz.addClass('is-dragover'); });
+            dz.on('dragleave drop', function (e) { e.preventDefault(); dz.removeClass('is-dragover'); });
+            dz.on('drop', function (e) {
+                var dt = e.originalEvent.dataTransfer;
+                if (dt && dt.files && dt.files.length > 0) {
+                    uploadCover(dt.files[0]);
+                }
+            });
+
+            syncCoverPreview($('#txtImg').val());
+        });
     </script>
 }

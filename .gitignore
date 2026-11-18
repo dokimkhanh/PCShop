@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+secrets.config
+# File cấu hình chứa mật khẩu (copy từ *.example rồi điền)
+connections.config
+.agent/
+tools/

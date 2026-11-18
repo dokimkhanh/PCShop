@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -21,7 +21,6 @@ namespace PCShop.Models.EF
         [Required(ErrorMessage ="Thiếu tên sản phẩm")]
         public string title { get; set; }
         public string alias { get; set; }
-        [Required(ErrorMessage = "Thiếu mã sản phẩm")]
         public string productCode { get; set; }
         public string description { get; set; }
         [AllowHtml]

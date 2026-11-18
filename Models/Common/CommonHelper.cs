@@ -1,4 +1,5 @@
-﻿using System;
+using Ganss.Xss;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -114,15 +115,17 @@ namespace PCShop.Models.Common
 
         public static string ConvertMoney(int money)
         {
+            return ConvertMoney((long)money);
+        }
+
+        public static string ConvertMoney(long money)
+        {
             if (money <= 0)
             {
-                return 0.ToString();
+                return "0";
             }
-            CultureInfo cul = CultureInfo.GetCultureInfo("vi-VN");   // try with "en-US"
-            string a = money.ToString("#,###", cul.NumberFormat);
-
-            return a;
-
+            CultureInfo cul = CultureInfo.GetCultureInfo("vi-VN");
+            return money.ToString("#,###", cul.NumberFormat);
         }
 
         private static Random random = new Random();
@@ -138,6 +141,30 @@ namespace PCShop.Models.Common
             const string chars = "0123456789";
             return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+    }
+
+    public static class HtmlSecurityHelper
+    {
+        private static readonly HtmlSanitizer Sanitizer = CreateSanitizer();
+
+        private static HtmlSanitizer CreateSanitizer()
+        {
+            var sanitizer = new HtmlSanitizer();
+            sanitizer.AllowedSchemes.Add("http");
+            sanitizer.AllowedSchemes.Add("https");
+            sanitizer.AllowedAttributes.Add("class");
+            sanitizer.AllowedAttributes.Add("style");
+            return sanitizer;
+        }
+
+        public static string Sanitize(string html)
+        {
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                return string.Empty;
+            }
+            return Sanitizer.Sanitize(html);
         }
     }
 }

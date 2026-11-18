@@ -1,0 +1,387 @@
+﻿@model PagedList<PCShop.Areas.Admin.Controllers.CommentThreadViewModel>
+@using PagedList
+@using PagedList.Mvc
+@using PCShop.Models.Common
+@{
+    ViewBag.Title = "Quản lý bình luận";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var currentSearch = ViewBag.CurrentSearch as string;
+    var currentStatus = ViewBag.CurrentStatus as string ?? "";
+    var currentProductId = ViewBag.CurrentProductId as int?;
+    var totalThreads = ViewBag.TotalThreads != null ? (int)ViewBag.TotalThreads : 0;
+    var unrepliedCount = ViewBag.UnrepliedCount != null ? (int)ViewBag.UnrepliedCount : 0;
+    var repliedCount = ViewBag.RepliedCount != null ? (int)ViewBag.RepliedCount : 0;
+    var canManage = PermissionHelper.HasPermission(User, "Product.Manage");
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <h1>Quản lý bình luận</h1>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="admin-toolbar">
+            <div class="admin-toolbar-left">
+                <div class="admin-tabs">
+                    <a href="@Url.Action("Index", "Comment", new { txtSearch = currentSearch, productId = currentProductId })"
+                       class="admin-tab-item @(string.IsNullOrEmpty(currentStatus) ? "active" : "")">
+                        Tất cả <span class="ml-1 tabular-nums">(@totalThreads)</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Comment", new { status = "unreplied", txtSearch = currentSearch, productId = currentProductId })"
+                       class="admin-tab-item @(currentStatus == "unreplied" ? "active" : "")">
+                        Chưa phản hồi <span class="ml-1 tabular-nums">(@unrepliedCount)</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Comment", new { status = "replied", txtSearch = currentSearch, productId = currentProductId })"
+                       class="admin-tab-item @(currentStatus == "replied" ? "active" : "")">
+                        Đã phản hồi <span class="ml-1 tabular-nums">(@repliedCount)</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-toolbar-right">
+                @using (Html.BeginForm("Index", "Comment", FormMethod.Get, new { @class = "d-flex flex-wrap align-items-center", @style = "gap: 8px;" }))
+                {
+                    if (!string.IsNullOrEmpty(currentStatus))
+                    {
+                        <input type="hidden" name="status" value="@currentStatus" />
+                    }
+                    @Html.DropDownList("productId", ViewBag.ProductList as SelectList, "Tất cả sản phẩm", new { @class = "form-control", @onchange = "this.form.submit()", @style = "width: 200px;" })
+                    <div class="admin-search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="search" name="txtSearch" value="@currentSearch" class="form-control" placeholder="Tìm người gửi, nội dung, sản phẩm..." />
+                    </div>
+                    <button type="submit" class="btn btn-default">Tìm</button>
+                }
+                @if (canManage)
+                {
+                    <a href="#" class="btn btn-danger d-none" id="btnDeleteAll">
+                        <i class="fas fa-trash-alt"></i>
+                        <span id="deleteAllText">Xoá đã chọn</span>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            @if (canManage)
+                            {
+                                <th style="width: 42px;">
+                                    <input type="checkbox" id="selectAll" aria-label="Chọn tất cả" />
+                                </th>
+                            }
+                            <th style="width: 240px;">Người bình luận &amp; Sản phẩm</th>
+                            <th>Nội dung &amp; Phản hồi</th>
+                            <th style="width: 130px;">Trạng thái</th>
+                            <th class="text-right" style="width: 110px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var thread in Model)
+                            {
+                                var item = thread.Comment;
+                                var productTitle = item.Product != null ? item.Product.title : ("Sản phẩm #" + item.ProductId);
+                                var productUrl = item.Product != null ? "/san-pham/" + item.Product.alias + "-p" + item.Product.id + "#comment_" + item.Id : "#";
+
+                                <tr id="row_@item.Id">
+                                    @if (canManage)
+                                    {
+                                        <td style="vertical-align: top;">
+                                            <input type="checkbox" class="selectRow" value="@item.Id" aria-label="Chọn bình luận" />
+                                        </td>
+                                    }
+                                    <td style="vertical-align: top;">
+                                        <div style="font-weight: 600; color: var(--foreground);">
+                                            @item.AuthorName
+                                            @if (item.IsAdminReply)
+                                            {
+                                                <span class="badge-clean badge-clean-danger ml-1" style="font-size: 10.5px;">QTV</span>
+                                            }
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(item.AuthorEmail))
+                                        {
+                                            <div style="font-size: 12px; color: var(--muted);">@item.AuthorEmail</div>
+                                        }
+                                        <div class="tabular-nums" style="font-size: 11.5px; color: var(--muted); margin-top: 2px;">
+                                            @item.CreatedDate.ToString("dd/MM/yyyy HH:mm")
+                                        </div>
+                                        <div class="mt-2">
+                                            <a href="@productUrl" target="_blank" style="font-size: 12.5px; color: var(--primary); font-weight: 500; text-decoration: none;">
+                                                <i class="fas fa-external-link-alt mr-1" style="font-size: 10.5px;"></i>@productTitle
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td style="vertical-align: top;">
+                                        @if (item.IsDeleted)
+                                        {
+                                            <div id="content_root_@item.Id" style="font-size: 13.5px; color: var(--muted); font-style: italic;">Bình luận đã bị xoá (giữ nguyên các phản hồi bên dưới)</div>
+                                        }
+                                        else
+                                        {
+                                            <div id="content_root_@item.Id" style="white-space: pre-line; word-break: break-word; font-size: 13.5px; line-height: 1.55;">@item.Content</div>
+                                        }
+
+                                        <div class="admin-replies-wrap mt-2" id="admin_replies_@item.Id" style="display: @(thread.Replies.Any() ? "flex" : "none"); flex-direction: column; gap: 8px; padding-left: 12px; border-left: 2px solid var(--border);">
+                                            @foreach (var r in thread.Replies)
+                                            {
+                                                <div id="reply_row_@r.Id" class="p-2" style="background: var(--background); border: 1px solid var(--border); border-radius: 10px;">
+                                                    <div class="d-flex align-items-center justify-content-between mb-1" style="gap: 8px;">
+                                                        <div style="font-size: 12.5px;">
+                                                            <strong>@r.AuthorName</strong>
+                                                            @if (r.IsAdminReply)
+                                                            {
+                                                                <span class="badge-clean badge-clean-danger ml-1" style="font-size: 10.5px;">Quản trị viên</span>
+                                                            }
+                                                            <span class="tabular-nums ml-2" style="color: var(--muted); font-size: 11.5px;">@r.CreatedDate.ToString("dd/MM/yyyy HH:mm")</span>
+                                                        </div>
+                                                        @if (canManage)
+                                                        {
+                                                            <button type="button" class="btn btn-link btn-sm p-0 text-danger btnDeleteReply" data-id="@r.Id" style="font-size: 11.5px;">Xoá</button>
+                                                        }
+                                                    </div>
+                                                    <div style="font-size: 13px; white-space: pre-line; word-break: break-word;">@r.Content</div>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        @if (canManage)
+                                        {
+                                            <div id="reply_box_@item.Id" class="mt-2 d-none">
+                                                <textarea id="reply_input_@item.Id" class="form-control mb-2" rows="2" placeholder="Nhập phản hồi của Quản trị viên..." style="font-size: 13px;"></textarea>
+                                                <div class="d-flex justify-content-end" style="gap: 6px;">
+                                                    <button type="button" class="btn btn-default btn-sm btnCloseReplyBox" data-id="@item.Id">Đóng</button>
+                                                    <button type="button" class="btn btn-primary btn-sm btnSendAdminReply" data-id="@item.Id">
+                                                        <i class="fas fa-paper-plane"></i>
+                                                        <span>Gửi phản hồi</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td style="vertical-align: top;">
+                                        @if (item.IsDeleted)
+                                        {
+                                            <span id="status_badge_@item.Id" class="badge-clean badge-clean-neutral">Đã xoá gốc</span>
+                                        }
+                                        else
+                                        {
+                                            <span id="status_badge_@item.Id" class="badge-clean @(thread.HasAdminReply ? "badge-clean-success" : "badge-clean-warning")">
+                                                @(thread.HasAdminReply ? "Đã phản hồi" : "Chưa phản hồi")
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-right" style="vertical-align: top; white-space: nowrap;">
+                                        @if (canManage)
+                                        {
+                                            if (!item.IsDeleted)
+                                            {
+                                                <button type="button" class="btn-icon btnOpenReplyBox" id="btn_reply_@item.Id" data-id="@item.Id" title="Phản hồi" aria-label="Phản hồi">
+                                                    <i class="fas fa-reply"></i>
+                                                </button>
+                                            }
+                                            <button type="button" class="btn-icon btn-icon-danger btnDelete" data-id="@item.Id" data-deleted="@(item.IsDeleted ? "1" : "0")" title="@(item.IsDeleted ? "Xoá vĩnh viễn cả luồng" : "Xoá bình luận")" aria-label="Xoá bình luận">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="@(canManage ? 5 : 4)">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fas fa-comments"></i></div>
+                                        <div class="empty-state-title">Chưa có bình luận nào</div>
+                                        <div style="font-size: 13px;">Các bình luận và câu hỏi của khách hàng trên trang sản phẩm sẽ xuất hiện tại đây.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model != null && Model.TotalItemCount > 0)
+            {
+                <div class="admin-table-footer">
+                    <div>Hiển thị @Model.FirstItemOnPage–@Model.LastItemOnPage trong @Model.TotalItemCount luồng bình luận</div>
+                    @if (Model.PageCount > 1)
+                    {
+                        @Html.PagedListPager(Model, page => Url.Action("Index", new { page, txtSearch = currentSearch, productId = currentProductId, status = currentStatus }))
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section scripts {
+    <script>
+        $(function () {
+            function syncBulkDelete() {
+                var count = $('.selectRow:checked').length;
+                if (count > 0) {
+                    $('#deleteAllText').text('Xoá ' + count + ' mục');
+                    $('#btnDeleteAll').removeClass('d-none');
+                } else {
+                    $('#btnDeleteAll').addClass('d-none');
+                }
+            }
+
+            $('#selectAll').on('change', function () {
+                $('.selectRow').prop('checked', this.checked);
+                syncBulkDelete();
+            });
+
+            $('body').on('change', '.selectRow', function () {
+                var allChecked = $('.selectRow').length > 0 && $('.selectRow:checked').length === $('.selectRow').length;
+                $('#selectAll').prop('checked', allChecked);
+                syncBulkDelete();
+            });
+
+            $('body').on('click', '.btnOpenReplyBox', function () {
+                var id = $(this).data('id');
+                var $box = $('#reply_box_' + id);
+                $box.toggleClass('d-none');
+                if (!$box.hasClass('d-none')) {
+                    $('#reply_input_' + id).focus();
+                }
+            });
+
+            $('body').on('click', '.btnCloseReplyBox', function () {
+                var id = $(this).data('id');
+                $('#reply_box_' + id).addClass('d-none');
+            });
+
+            $('body').on('click', '.btnSendAdminReply', function () {
+                var id = $(this).data('id');
+                var $input = $('#reply_input_' + id);
+                var content = $.trim($input.val());
+                if (!content) {
+                    toastr.warning('Vui lòng nhập nội dung phản hồi.');
+                    return;
+                }
+                var $btn = $(this);
+                $btn.prop('disabled', true);
+
+                $.ajax({
+                    url: '/Admin/Comment/Reply',
+                    type: 'POST',
+                    data: { parentId: id, content: content },
+                    success: function (res) {
+                        if (res && res.success && res.reply) {
+                            var r = res.reply;
+                            var $card = $('<div class="p-2" style="background: var(--background); border: 1px solid var(--border); border-radius: 10px;"></div>').attr('id', 'reply_row_' + r.id);
+                            var $top = $('<div class="d-flex align-items-center justify-content-between mb-1" style="gap: 8px;"></div>');
+                            var $left = $('<div style="font-size: 12.5px;"></div>');
+                            $left.append($('<strong></strong>').text(r.authorName));
+                            $left.append($('<span class="badge-clean badge-clean-danger ml-1" style="font-size: 10.5px;">Quản trị viên</span>'));
+                            $left.append($('<span class="tabular-nums ml-2" style="color: var(--muted); font-size: 11.5px;"></span>').text(r.createdDate));
+                            $top.append($left);
+                            $top.append($('<button type="button" class="btn btn-link btn-sm p-0 text-danger btnDeleteReply" style="font-size: 11.5px;">Xoá</button>').attr('data-id', r.id));
+                            $card.append($top);
+                            $card.append($('<div style="font-size: 13px; white-space: pre-line; word-break: break-word;"></div>').text(r.content));
+
+                            $('#admin_replies_' + id).append($card).css('display', 'flex');
+                            $('#status_badge_' + id).removeClass('badge-clean-warning').addClass('badge-clean-success').text('Đã phản hồi');
+                            $input.val('');
+                            $('#reply_box_' + id).addClass('d-none');
+                            toastr.success('Đã gửi phản hồi thành công');
+                        } else {
+                            toastr.error((res && res.message) || 'Không thể gửi phản hồi.');
+                        }
+                    },
+                    error: function () {
+                        toastr.error('Lỗi kết nối khi gửi phản hồi.');
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false);
+                    }
+                });
+            });
+
+            $('body').on('click', '.btnDelete', function () {
+                var $btn = $(this);
+                var id = $btn.data('id');
+                var isAlreadyDeleted = $btn.attr('data-deleted') === '1';
+                var promptMsg = isAlreadyDeleted
+                    ? 'Xoá vĩnh viễn toàn bộ luồng bình luận này (bao gồm các phản hồi)?'
+                    : 'Xoá bình luận này? (Nếu đã có phản hồi bên dưới, bình luận gốc sẽ chuyển thành "Bình luận đã bị xoá" và giữ lại các phản hồi)';
+                if (confirm(promptMsg)) {
+                    $.ajax({
+                        url: '/Admin/Comment/Delete',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (res) {
+                            if (res && res.success) {
+                                if (res.softDeleted) {
+                                    $('#content_root_' + id)
+                                        .css({ color: 'var(--muted)', fontStyle: 'italic' })
+                                        .text('Bình luận đã bị xoá (giữ nguyên các phản hồi bên dưới)');
+                                    $('#status_badge_' + id)
+                                        .removeClass('badge-clean-warning badge-clean-success')
+                                        .addClass('badge-clean-neutral')
+                                        .text('Đã xoá gốc');
+                                    $('#btn_reply_' + id).remove();
+                                    $('#reply_box_' + id).remove();
+                                    $btn.attr('data-deleted', '1').attr('title', 'Xoá vĩnh viễn cả luồng');
+                                    toastr.success('Đã ẩn bình luận gốc và giữ nguyên các phản hồi');
+                                } else {
+                                    $('#row_' + id).remove();
+                                    syncBulkDelete();
+                                    toastr.success('Đã xoá bình luận');
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+
+            $('body').on('click', '.btnDeleteReply', function () {
+                var id = $(this).data('id');
+                if (confirm('Xoá phản hồi này?')) {
+                    $.ajax({
+                        url: '/Admin/Comment/Delete',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (res) {
+                            if (res && res.success) {
+                                $('#reply_row_' + id).remove();
+                                if (res.removedParentId) {
+                                    $('#row_' + res.removedParentId).remove();
+                                }
+                                toastr.success('Đã xoá phản hồi');
+                            }
+                        }
+                    });
+                }
+            });
+
+            $('#btnDeleteAll').on('click', function (e) {
+                e.preventDefault();
+                var ids = $('.selectRow:checked').map(function () { return $(this).val(); }).get().join(',');
+                if (ids && confirm('Xoá tất cả các bình luận đã chọn?')) {
+                    $.ajax({
+                        url: '/Admin/Comment/DeleteAll',
+                        type: 'POST',
+                        data: { ids: ids },
+                        success: function (res) {
+                            if (res && res.success) {
+                                location.reload();
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

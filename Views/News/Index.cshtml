@@ -4,81 +4,73 @@
 @{
     ViewBag.Title = "Tin tức";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var fallbackImg = Url.Content("~/Content/assets/images/blog_1.jpg");
 }
 
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/main_styles.css">
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/contact_styles.css">
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/contact_responsive.css">
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/bootstrap4/bootstrap.min.css">
+<div class="container sf-page-wrap">
+    <nav class="sf-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Trang chủ</a>
+        <span class="sep">/</span>
+        <span class="current">Tin tức</span>
+    </nav>
 
-<div class="container contact_container">
-    <div class="row">
-        <div class="col">
-            <div class="breadcrumbs d-flex flex-row align-items-center">
-                <ul>
-                    <li><a href="/">Trang chủ</a></li>
-                    <li class="active"><a href="/tin-tuc"><i class="fa fa-angle-right" aria-hidden="true"></i>Tin tức</a></li>
-                </ul>
-            </div>
-
+    <div class="sf-section-head mb-4">
+        <div>
+            <h1 class="sf-section-title" style="font-size: 24px;">Tin tức công nghệ</h1>
+            <div class="sf-section-sub">Đánh giá linh kiện, mẹo tối ưu hiệu năng PC và thông tin ưu đãi mới nhất từ PCShop.</div>
         </div>
     </div>
 
     @if (Model != null && Model.Any())
     {
-        foreach (var item in Model)
-        {
-            <div class="row mb-3">
-                <div class="col-md-3">
-                    <div class="img-box">
-                        <img src="@item.image" alt="@item.title" width="250" height="120" />
-                    </div>
-                </div>
-                <div class="col-md-9">
-                    <div class="content-box">
-                        <h3>
-                            @if (@item.title.Length < 56)
-                            {
-                                <a href="/tin-tuc/@item.alias-n@(item.id)">@item.title</a>
-                            }
-                            else
-                            {
-                                <a href="/tin-tuc/@item.alias-n@(item.id)">@item.title.Substring(0, 56)...</a>
+        <div class="sf-news-grid">
+            @foreach (var item in Model)
+            {
+                var imgSrc = string.IsNullOrWhiteSpace(item.image) ? fallbackImg : item.image;
+                var titleText = string.IsNullOrWhiteSpace(item.title) ? "Bài viết công nghệ" : item.title;
+                var descText = item.description ?? "";
 
-                            }
-
-                        </h3>
-                        <div class="description-box">
-                            @if (item.description.Length < 120)
-                            {
-                                <p>@item.description</p>
-                            }
-                            else
-                            {
-                                <p>
-                                    @item.description.Substring(0, 120)...
-                                    <strong>
-                                        <a href="/tin-tuc/@item.alias-n@(item.id)">
-                                            Đọc tiếp
-                                        </a>
-                                    </strong>
-                                </p>
-                            }
+                <article class="sf-news-card">
+                    <a href="/tin-tuc/@item.alias-n@(item.id)" class="sf-news-thumb">
+                        <img src="@imgSrc" onerror="this.onerror=null;this.src='@fallbackImg';" alt="@titleText" />
+                    </a>
+                    <div class="sf-news-body">
+                        <div class="sf-news-meta">
+                            <i class="fa fa-calendar-o mr-1" aria-hidden="true"></i>
+                            @item.createdDate.ToString("dd/MM/yyyy")
                         </div>
+                        <h2 class="sf-news-title">
+                            <a href="/tin-tuc/@item.alias-n@(item.id)" title="@titleText">@titleText</a>
+                        </h2>
+                        @if (!string.IsNullOrWhiteSpace(descText))
+                        {
+                            <p class="sf-news-desc">@descText</p>
+                        }
+                        <a href="/tin-tuc/@item.alias-n@(item.id)" class="sf-link-all mt-auto" style="font-size: 13px;">
+                            <span>Đọc bài viết</span>
+                            <i class="fa fa-angle-right" aria-hidden="true"></i>
+                        </a>
                     </div>
-                </div>
-            </div>
-        }
-    }
+                </article>
+            }
+        </div>
 
-    <div class="row">
-        <div class="col-sm-12 col-md-5"><div class="dataTables_info" id="example1_info" role="status" aria-live="polite">Showing 1 to @Model.Count entries</div></div>
-        <div class="col-sm-12 col-md-7">
-            <div class="dataTables_paginate paging_simple_numbers" id="example1_paginate">
-                <ul class="pagination">
-                    @Html.PagedListPager(Model, page => Url.Action("Index", new { page }))
-                </ul>
+        <div class="d-flex flex-wrap align-items-center justify-content-between mt-4 pt-3" style="gap: 12px; border-top: 1px solid var(--sf-border);">
+            <div style="font-size: 13px; color: var(--sf-muted);">
+                Hiển thị <strong class="sf-tabular">@Model.FirstItemOnPage - @Model.LastItemOnPage</strong> trong tổng số <strong class="sf-tabular">@Model.TotalItemCount</strong> bài viết
+            </div>
+            <div class="sf-pagination-wrap">
+                @Html.PagedListPager(Model, page => Url.Action("Index", new { page }))
             </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="sf-card p-5 text-center">
+            <div class="mb-3" style="font-size: 36px; color: #d4d4d8;"><i class="fa fa-newspaper-o" aria-hidden="true"></i></div>
+            <h3 style="font-size: 17px; font-weight: 600; margin-bottom: 6px;">Chưa có bài viết nào</h3>
+            <p style="color: var(--sf-muted); margin-bottom: 18px;">Các bài viết tin tức và hướng dẫn công nghệ sẽ sớm được cập nhật tại đây.</p>
+            <a href="/" class="sf-btn-primary">Quay về trang chủ</a>
+        </div>
+    }
 </div>

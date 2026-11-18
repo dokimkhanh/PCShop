@@ -1,0 +1,158 @@
+﻿@model PCShop.Models.UserProfileViewModel
+@{
+    ViewBag.Title = "Thông tin tài khoản";
+    var orders = Model.Orders != null ? Model.Orders.ToList() : new System.Collections.Generic.List<PCShop.Models.EF.Order>();
+    var totalOrders = orders.Count;
+    var paidOrders = orders.Count(o => o.paymentStatus == 1);
+    var totalSpent = orders.Where(o => o.paymentStatus != 2).Sum(o => (long)o.totalAmount);
+    var displayName = !string.IsNullOrWhiteSpace(Model.FullName) ? Model.FullName : Model.UserName;
+    var avatarInitial = !string.IsNullOrWhiteSpace(displayName) ? displayName.Trim().Substring(0, 1).ToUpper() : "U";
+}
+
+<div class="container sf-page-wrap">
+    <nav class="sf-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Trang chủ</a>
+        <span class="sep">/</span>
+        <span class="current">Thông tin tài khoản</span>
+    </nav>
+
+    <div class="sf-card p-4 mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 16px;">
+            <div class="d-flex align-items-center" style="gap: 14px;">
+                <div class="d-inline-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border-radius: 16px; background: var(--sf-primary-light); color: var(--sf-primary); font-size: 22px; font-weight: 700; flex-shrink: 0;">
+                    @avatarInitial
+                </div>
+                <div>
+                    <h1 style="font-size: 20px; font-weight: 700; margin: 0;">@displayName</h1>
+                    <div style="font-size: 13px; color: var(--sf-muted); margin-top: 2px;">
+                        @@@Model.UserName
+                        @if (!string.IsNullOrWhiteSpace(Model.Email))
+                        {
+                            <span>&middot; @Model.Email</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap" style="gap: 12px;">
+                <div class="px-3 py-2" style="background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: 12px; min-width: 112px;">
+                    <div style="font-size: 11.5px; color: var(--sf-muted);">Tổng đơn hàng</div>
+                    <div class="sf-tabular" style="font-size: 18px; font-weight: 700;">@totalOrders</div>
+                </div>
+                <div class="px-3 py-2" style="background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: 12px; min-width: 112px;">
+                    <div style="font-size: 11.5px; color: var(--sf-muted);">Đã thanh toán</div>
+                    <div class="sf-tabular" style="font-size: 18px; font-weight: 700; color: var(--sf-success);">@paidOrders</div>
+                </div>
+                <div class="px-3 py-2" style="background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: 12px; min-width: 148px;">
+                    <div style="font-size: 11.5px; color: var(--sf-muted);">Tổng chi tiêu</div>
+                    <div class="sf-tabular" style="font-size: 18px; font-weight: 700; color: var(--sf-primary);">@PCShop.Models.Common.CommonHelper.ConvertMoney(totalSpent) đ</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-5 mb-4 mb-lg-0">
+            <div class="sf-card p-4 h-100">
+                <h2 style="font-size: 17px; font-weight: 700; margin-bottom: 16px;">Hồ sơ cá nhân</h2>
+
+                @if (TempData["ProfileSuccess"] != null)
+                {
+                    <div class="alert alert-success py-2 px-3 mb-3" style="font-size: 13.5px; border-radius: 10px;">@TempData["ProfileSuccess"]</div>
+                }
+
+                @using (Html.BeginForm("Profile", "Account", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger small mb-3" })
+
+                    <div class="form-group">
+                        <label style="font-size: 13px; font-weight: 600;">Tên đăng nhập</label>
+                        <input type="text" class="form-control" value="@Model.UserName" readonly style="border-radius: 10px; height: 42px; background: var(--sf-bg); border-color: var(--sf-border-strong);" />
+                    </div>
+                    <div class="form-group">
+                        <label for="FullName" style="font-size: 13px; font-weight: 600;">Họ và tên</label>
+                        @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", @placeholder = "Nhập họ và tên", @style = "border-radius: 10px; height: 42px; border-color: var(--sf-border-strong);" })
+                        @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
+                    </div>
+                    <div class="form-group">
+                        <label for="Email" style="font-size: 13px; font-weight: 600;">Email</label>
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", @placeholder = "Nhập email", @style = "border-radius: 10px; height: 42px; border-color: var(--sf-border-strong);" })
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                    </div>
+                    <div class="form-group">
+                        <label for="Phone" style="font-size: 13px; font-weight: 600;">Số điện thoại</label>
+                        @Html.TextBoxFor(m => m.Phone, new { @class = "form-control", @placeholder = "Nhập số điện thoại", @style = "border-radius: 10px; height: 42px; border-color: var(--sf-border-strong);" })
+                        @Html.ValidationMessageFor(m => m.Phone, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mt-4 pt-2" style="gap: 10px;">
+                        <a href="/Manage/ChangePassword" class="sf-link-all" style="font-size: 13.5px;">
+                            <i class="fa fa-lock" aria-hidden="true"></i>
+                            <span>Đổi mật khẩu</span>
+                        </a>
+                        <button type="submit" class="sf-btn-primary px-4">Lưu thông tin</button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="sf-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h2 style="font-size: 17px; font-weight: 700; margin: 0;">Lịch sử đơn hàng</h2>
+                    <span style="font-size: 12.5px; color: var(--sf-muted);" class="sf-tabular">@totalOrders đơn hàng</span>
+                </div>
+
+                @if (orders.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" style="font-size: 13.5px;">
+                            <thead>
+                                <tr style="color: var(--sf-muted); font-size: 12px; text-transform: uppercase;">
+                                    <th style="border-top: 0;">Mã đơn</th>
+                                    <th style="border-top: 0;">Ngày đặt</th>
+                                    <th style="border-top: 0;" class="text-right">Tổng tiền</th>
+                                    <th style="border-top: 0;" class="text-right">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in orders)
+                                {
+                                    <tr>
+                                        <td style="font-weight: 600; vertical-align: middle;">@order.code</td>
+                                        <td class="sf-tabular" style="color: var(--sf-muted); vertical-align: middle;">@order.createdDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="text-right sf-tabular" style="font-weight: 600; vertical-align: middle;">@PCShop.Models.Common.CommonHelper.ConvertMoney(order.totalAmount) đ</td>
+                                        <td class="text-right" style="vertical-align: middle;">
+                                            @if (order.paymentStatus == 0)
+                                            {
+                                                <span class="sf-status-pill sf-status-warning">Chưa thanh toán</span>
+                                            }
+                                            else if (order.paymentStatus == 1)
+                                            {
+                                                <span class="sf-status-pill sf-status-success">Đã thanh toán</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="sf-status-pill sf-status-danger">Đã hủy</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <div class="mb-3" style="font-size: 34px; color: #d4d4d8;"><i class="fa fa-shopping-bag" aria-hidden="true"></i></div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Bạn chưa có đơn hàng nào</div>
+                        <p style="font-size: 13.5px; color: var(--sf-muted); margin-bottom: 18px;">Đơn hàng sau khi đặt sẽ hiển thị trạng thái chi tiết tại đây.</p>
+                        <a href="/san-pham" class="sf-btn-primary">Khám phá sản phẩm</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

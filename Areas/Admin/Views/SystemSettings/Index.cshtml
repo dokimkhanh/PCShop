@@ -1,147 +1,325 @@
-﻿@model IEnumerable<PCShop.Models.EF.SystemSettings>
+﻿@model List<PCShop.Models.EF.SystemSettings>
+@using PCShop.Models.Common
+@using PCShop.Models.EF
 @{
-    ViewBag.Title = "Cài đặt hệ thống";
+    ViewBag.Title = "Cấu hình hệ thống";
+    var currentGroup = ViewBag.CurrentGroup as string;
+    var currentSearch = ViewBag.CurrentSearch as string;
+    var groups = ViewBag.Groups as List<string> ?? new List<string>();
+    var groupCounts = ViewBag.GroupCounts as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var totalCount = ViewBag.TotalCount != null ? (int)ViewBag.TotalCount : 0;
+    var canManage = PermissionHelper.HasPermission(User, "Setting.Manage");
+
+    var groupMeta = new Dictionary<string, Tuple<string, string>>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Thông tin chung", Tuple.Create("fas fa-store", "Tên thương hiệu, câu thông báo thanh đầu trang và thông tin nhận diện cơ bản.") },
+        { "Liên hệ", Tuple.Create("fas fa-map-marked-alt", "Địa chỉ showroom, tọa độ tìm kiếm Google Maps, hotline, email và khung giờ mở cửa.") },
+        { "Mạng xã hội", Tuple.Create("fas fa-share-alt", "Liên kết các kênh chính thức hiển thị ở chân trang và trang Liên hệ. Bỏ trống nếu muốn ẩn.") },
+        { "Thanh toán", Tuple.Create("fas fa-credit-card", "Bật hoặc tắt từng phương thức thanh toán hiển thị trên trang Thanh toán của khách hàng.") },
+        { "Giao diện", Tuple.Create("fas fa-palette", "Logo thương hiệu và ảnh banner chính trên trang chủ cửa hàng.") },
+        { "SEO", Tuple.Create("fas fa-search", "Thẻ meta tiêu đề, mô tả, từ khóa, Favicon, ảnh chia sẻ mạng xã hội và mã xác minh tìm kiếm.") }
+    };
+
+    var groupedItems = (Model ?? new List<SystemSettings>())
+        .GroupBy(s => string.IsNullOrWhiteSpace(s.settingGroup) ? "Thông tin chung" : s.settingGroup)
+        .OrderBy(g =>
+        {
+            var idx = groups.FindIndex(x => string.Equals(x, g.Key, StringComparison.OrdinalIgnoreCase));
+            return idx >= 0 ? idx : 999;
+        })
+        .ToList();
 }
 
-
-<!-- Content Header (Page header) -->
 <section class="content-header">
     <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1>Cài đặt hệ thống</h1>
+        <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 12px;">
+            <div>
+                <h1 class="mb-1">Cấu hình hệ thống</h1>
+                <div style="font-size: 13px; color: var(--muted);">Quản lý toàn bộ thông tin cửa hàng, bản đồ, mạng xã hội, giao diện và SEO trên một trang tập trung.</div>
             </div>
+            @using (Html.BeginForm("Index", "SystemSettings", FormMethod.Get, new { @class = "d-flex align-items-center", @style = "gap: 8px;" }))
+            {
+                if (!string.IsNullOrWhiteSpace(currentGroup))
+                {
+                    <input type="hidden" name="group" value="@currentGroup" />
+                }
+                <div class="admin-search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="search" name="txtSearch" value="@currentSearch" class="form-control" placeholder="Tìm nhanh cấu hình..." />
+                </div>
+                <button type="submit" class="btn btn-default">Tìm</button>
+            }
         </div>
     </div>
-    <!-- /.container-fluid -->
 </section>
 
-<!-- Main content -->
 <section class="content">
     <div class="container-fluid">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success mb-3" style="border-radius: 12px; font-size: 13.5px;">
+                <i class="fas fa-check-circle mr-1"></i> @TempData["Success"]
+            </div>
+        }
+
         <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Danh sách cài đặt</h3>
-                    </div>
-                    <!-- /.card-header -->
-                    <div class="card-body">
-                        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
-                            @*<div class="row mb-2">
-                                <div class="col-sm-12 col-md-6">
-                                    <div class="float-sm-left">
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-6">
-                                    <div class="float-sm-right">
-                                        <a type="button" href="/Admin/SystemSettings/Add" class="btn btn-block btn-primary">Thêm cài đặt mới</a>
-                                    </div>
-                                </div>
-                            </div>*@
-                            <div class="row">
-                                <div class="col-sm-12">
+            <div class="col-lg-3 mb-4">
+                <div class="card" style="position: sticky; top: 76px;">
+                    <div class="card-body p-3">
+                        <div style="font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 4px 10px 8px;">Danh mục cấu hình</div>
+                        <div class="d-flex flex-column" style="gap: 4px;">
+                            <a href="@Url.Action("Index", "SystemSettings", new { txtSearch = currentSearch })"
+                               class="d-flex align-items-center justify-content-between px-3 py-2"
+                               style="border-radius: 10px; font-size: 13.5px; text-decoration: none; font-weight: @(string.IsNullOrWhiteSpace(currentGroup) ? "600" : "500"); background: @(string.IsNullOrWhiteSpace(currentGroup) ? "rgba(254, 76, 80, 0.08)" : "transparent"); color: @(string.IsNullOrWhiteSpace(currentGroup) ? "var(--primary)" : "var(--foreground)");">
+                                <span><i class="fas fa-sliders-h mr-2" style="width: 16px;"></i>Tất cả cấu hình</span>
+                                <span class="badge-clean badge-clean-neutral tabular-nums">@totalCount</span>
+                            </a>
 
-                                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Tên cấu hình</th>
-                                                <th>Giá trị</th>
-                                                <th>Mô tả</th>
-                                                <th>Thao tác</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (Model != null && Model.Any())
-                                            {
-
-                                                foreach (var item in Model)
-                                                {
-                                                    <tr id="row_@item.id">
-                                                        <td class="dtr-control sorting_1">@item.id</td>
-                                                        <td>@item.settingKey</td>
-                                                        <td>@item.settingValue</td>
-                                                        <td>@item.settingDescription</td>
-                                                        <td>
-                                                            <a href="/Admin/SystemSettings/Edit/@item.id" class="btn btn-primary">Sửa</a>
-                                                            <a href="#" data-id="@item.id" class="btn btn-danger" id="btnDelete">Xoá</a>
-                                                        </td>
-                                                    </tr>
-                                                }
-
-                                            }
-                                            else
-                                            {
-                                                <tr>
-                                                    <td>Chưa có dữ liệu</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Tên cấu hình</th>
-                                                <th>Giá trị</th>
-                                                <th>Mô tả</th>
-                                                <th>Thao tác</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
+                            @foreach (var grp in groups)
+                            {
+                                var isActive = string.Equals(currentGroup, grp, StringComparison.OrdinalIgnoreCase);
+                                var iconCls = groupMeta.ContainsKey(grp) ? groupMeta[grp].Item1 : "fas fa-cog";
+                                var cnt = groupCounts.ContainsKey(grp) ? groupCounts[grp] : 0;
+                                <a href="@Url.Action("Index", "SystemSettings", new { group = grp, txtSearch = currentSearch })"
+                                   class="d-flex align-items-center justify-content-between px-3 py-2"
+                                   style="border-radius: 10px; font-size: 13.5px; text-decoration: none; font-weight: @(isActive ? "600" : "500"); background: @(isActive ? "rgba(254, 76, 80, 0.08)" : "transparent"); color: @(isActive ? "var(--primary)" : "var(--foreground)");">
+                                    <span><i class="@iconCls mr-2" style="width: 16px;"></i>@grp</span>
+                                    <span class="badge-clean badge-clean-neutral tabular-nums">@cnt</span>
+                                </a>
+                            }
                         </div>
                     </div>
-                    <!-- /.card-body -->
                 </div>
-                <!-- /.card -->
             </div>
-            <!-- /.col -->
-        </div>
-        <!-- /.row -->
-    </div>
-    <!-- /.container-fluid -->
-</section>
-<!-- /.content -->
 
-@section scripts{
-    <script>
-        $(document).ready(function () {
-            $('body').on('click', '#btnDelete', function () {
-                var id = $(this).data('id');
-                //alert(id);
-                var conf = confirm('Bạn có chắc chắn muốn xoá cài đặt này?');
-                if (conf === true) {
-                    $.ajax({
-                        url: '/Admin/SystemSettings/Delete',
-                        type: 'POST',
-                        data: { id: id },
-                        success: function (rs) {
-                            if (rs.success) {
-                                $('#row_' + id).remove();
-                                toastr["success"]("Xoá cài đặt thành công", "Thông báo")
+            <div class="col-lg-9">
+                @if (groupedItems.Any())
+                {
+                    using (Html.BeginForm("SaveAll", "SystemSettings", FormMethod.Post, new { @id = "settingsPageForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="returnGroup" value="@currentGroup" />
+                        <input type="hidden" name="returnSearch" value="@currentSearch" />
 
-                                toastr.options = {
-                                    "closeButton": true,
-                                    "debug": false,
-                                    "newestOnTop": false,
-                                    "progressBar": true,
-                                    "positionClass": "toast-top-right",
-                                    "preventDuplicates": false,
-                                    "onclick": null,
-                                    "showDuration": "300",
-                                    "hideDuration": "1000",
-                                    "timeOut": "5000",
-                                    "extendedTimeOut": "1000",
-                                    "showEasing": "swing",
-                                    "hideEasing": "linear",
-                                    "showMethod": "fadeIn",
-                                    "hideMethod": "fadeOut"
-                                }
-                            }
+                        foreach (var grp in groupedItems)
+                        {
+                            var iconCls = groupMeta.ContainsKey(grp.Key) ? groupMeta[grp.Key].Item1 : "fas fa-cog";
+                            var subtitle = groupMeta.ContainsKey(grp.Key) ? groupMeta[grp.Key].Item2 : "Các tham số cấu hình thuộc nhóm " + grp.Key + ".";
+
+                            <div class="card mb-4">
+                                <div class="card-header d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h3 class="card-title mb-0" style="font-size: 15.5px; font-weight: 700;">
+                                            <i class="@iconCls mr-2" style="color: var(--primary);"></i>@grp.Key
+                                        </h3>
+                                        <div style="font-size: 12.5px; color: var(--muted); margin-top: 2px;">@subtitle</div>
+                                    </div>
+                                    <span class="badge-clean badge-clean-neutral tabular-nums">@grp.Count() mục</span>
+                                </div>
+
+                                <div class="card-body">
+                                    <div class="row">
+                                        @foreach (var item in grp)
+                                        {
+                                            var fieldName = "setting_" + item.id;
+                                            var label = !string.IsNullOrWhiteSpace(item.settingName) ? item.settingName : item.settingKey;
+                                            var type = (item.settingType ?? "text").ToLowerInvariant();
+                                            var isFullWidth = type == "textarea" || type == "image" || type == "bool" || item.settingKey.IndexOf("Description", StringComparison.OrdinalIgnoreCase) >= 0 || item.settingKey.IndexOf("Keywords", StringComparison.OrdinalIgnoreCase) >= 0;
+                                            var colClass = isFullWidth ? "col-12" : "col-md-6";
+
+                                            <div class="@colClass mb-3">
+                                                @if (type == "bool")
+                                                {
+                                                    var isChecked = string.Equals((item.settingValue ?? "").Trim(), "true", StringComparison.OrdinalIgnoreCase) || (item.settingValue ?? "").Trim() == "1";
+                                                    <div class="d-flex flex-wrap align-items-center justify-content-between p-3" style="background: var(--background); border: 1px solid var(--border); border-radius: 12px; gap: 12px;">
+                                                        <div style="flex: 1; min-width: 220px;">
+                                                            <label for="@fieldName" class="mb-0 d-block" style="font-weight: 600; font-size: 13.5px; cursor: @(canManage ? "pointer" : "default");">@label</label>
+                                                            @if (!string.IsNullOrWhiteSpace(item.settingDescription))
+                                                            {
+                                                                <div style="font-size: 12px; color: var(--muted); margin-top: 3px;">@item.settingDescription</div>
+                                                            }
+                                                        </div>
+                                                        <div class="d-flex align-items-center" style="gap: 10px;">
+                                                            <span id="bool_badge_@item.id" class="badge-clean @(isChecked ? "badge-clean-success" : "badge-clean-neutral")">@(isChecked ? "Đang bật" : "Đang tắt")</span>
+                                                            @if (canManage)
+                                                            {
+                                                                <input type="hidden" name="@fieldName" value="false" />
+                                                            }
+                                                            <div class="custom-control custom-switch mb-0">
+                                                                <input type="checkbox" class="custom-control-input setting-bool-switch" id="@fieldName" name="@fieldName" value="true" data-id="@item.id" @(isChecked ? "checked" : "") @(canManage ? "" : "disabled") />
+                                                                <label class="custom-control-label mb-0" for="@fieldName" style="cursor: @(canManage ? "pointer" : "default");"></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                <div class="form-group mb-0 h-100">
+                                                    <label for="@fieldName" class="mb-1 d-block" style="font-weight: 600; font-size: 13.5px;">@label</label>
+
+                                                    @if (type == "textarea")
+                                                    {
+                                                        <textarea id="@fieldName" name="@fieldName" rows="3" class="form-control" @(canManage ? "" : "readonly") placeholder="Nhập nội dung...">@item.settingValue</textarea>
+                                                    }
+                                                    else if (type == "image")
+                                                    {
+                                                        <div class="p-3" style="background: var(--background); border: 1px solid var(--border); border-radius: 12px;">
+                                                            <div class="d-flex flex-wrap align-items-center" style="gap: 14px;">
+                                                                <div style="width: 88px; height: 60px; border-radius: 10px; border: 1px solid var(--border); background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                                                                    <img id="preview_@item.id" src="@(string.IsNullOrWhiteSpace(item.settingValue) ? "" : item.settingValue)" alt="@label" style="max-width: 100%; max-height: 100%; object-fit: contain; display: @(string.IsNullOrWhiteSpace(item.settingValue) ? "none" : "block");" />
+                                                                    <i id="placeholder_@item.id" class="fas fa-image" style="color: #d4d4d8; font-size: 20px; display: @(string.IsNullOrWhiteSpace(item.settingValue) ? "block" : "none");"></i>
+                                                                </div>
+                                                                <div class="flex-grow-1" style="min-width: 220px;">
+                                                                    <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+                                                                        <input type="text" id="@fieldName" name="@fieldName" value="@item.settingValue" class="form-control setting-img-url flex-grow-1" data-id="@item.id" @(canManage ? "" : "readonly") placeholder="Đường dẫn ảnh (/Uploads/images/...)" style="min-width: 180px; width: auto;" />
+                                                                        @if (canManage)
+                                                                        {
+                                                                            <input type="file" id="file_@item.id" class="setting-img-file" data-id="@item.id" accept="image/*" style="display: none;" />
+                                                                            <button type="button" class="btn btn-default btn-sm btn-upload-setting-img" data-id="@item.id">
+                                                                                <i class="fas fa-upload"></i>
+                                                                                <span>Tải ảnh</span>
+                                                                            </button>
+                                                                            <button type="button" class="btn btn-default btn-sm btn-clear-setting-img" data-id="@item.id" title="Xoá đường dẫn ảnh">
+                                                                                <i class="fas fa-times"></i>
+                                                                            </button>
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else if (type == "email")
+                                                    {
+                                                        <input type="email" id="@fieldName" name="@fieldName" value="@item.settingValue" class="form-control" @(canManage ? "" : "readonly") placeholder="email@domain.com" />
+                                                    }
+                                                    else if (type == "phone")
+                                                    {
+                                                        <input type="tel" id="@fieldName" name="@fieldName" value="@item.settingValue" class="form-control" @(canManage ? "" : "readonly") placeholder="09xx xxx xxx" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <input type="text" id="@fieldName" name="@fieldName" value="@item.settingValue" class="form-control" @(canManage ? "" : "readonly") placeholder="Nhập giá trị..." />
+                                                    }
+
+                                                    @if (!string.IsNullOrWhiteSpace(item.settingDescription))
+                                                    {
+                                                        <div style="font-size: 12px; color: var(--muted); margin-top: 5px;">@item.settingDescription</div>
+                                                    }
+                                                </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
                         }
-                    })
+
+                        if (canManage)
+                        {
+                            <div class="card" style="position: sticky; bottom: 16px; z-index: 20;">
+                                <div class="card-body py-3 px-4 d-flex flex-wrap align-items-center justify-content-between" style="gap: 12px;">
+                                    <div style="font-size: 13px; color: var(--muted);">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        Các cấu hình được định nghĩa cố định theo hệ thống. Sau khi bấm lưu, thay đổi sẽ áp dụng ngay cho trang khách hàng.
+                                    </div>
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="fas fa-save"></i>
+                                        <span>Lưu cấu hình</span>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
                 }
+                else
+                {
+                    <div class="card">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-search"></i></div>
+                            <div class="empty-state-title">Không tìm thấy cấu hình phù hợp</div>
+                            <div style="font-size: 13px; margin-bottom: 14px;">Thử tìm với từ khóa khác hoặc xem lại toàn bộ danh mục cấu hình.</div>
+                            <a href="@Url.Action("Index", "SystemSettings")" class="btn btn-default btn-sm">Xem tất cả cấu hình</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@section scripts {
+    <script>
+        $(function () {
+            function syncImagePreview(id, url) {
+                var cleanUrl = $.trim(url || '');
+                if (cleanUrl) {
+                    $('#preview_' + id).attr('src', cleanUrl).show();
+                    $('#placeholder_' + id).hide();
+                } else {
+                    $('#preview_' + id).attr('src', '').hide();
+                    $('#placeholder_' + id).show();
+                }
+            }
+
+            $('.setting-bool-switch').on('change', function () {
+                var id = $(this).data('id');
+                var checked = $(this).is(':checked');
+                $('#bool_badge_' + id)
+                    .toggleClass('badge-clean-success', checked)
+                    .toggleClass('badge-clean-neutral', !checked)
+                    .text(checked ? 'Đang bật' : 'Đang tắt');
+            });
+
+            $('.setting-img-url').on('input change', function () {
+                syncImagePreview($(this).data('id'), $(this).val());
+            });
+
+            $('.btn-upload-setting-img').on('click', function () {
+                var id = $(this).data('id');
+                $('#file_' + id).trigger('click');
+            });
+
+            $('.btn-clear-setting-img').on('click', function () {
+                var id = $(this).data('id');
+                $('#setting_' + id).val('');
+                syncImagePreview(id, '');
+            });
+
+            $('.setting-img-file').on('change', function () {
+                var id = $(this).data('id');
+                var files = this.files;
+                if (!files || files.length === 0) {
+                    return;
+                }
+                var formData = new FormData();
+                formData.append('files', files[0]);
+                var $btn = $('.btn-upload-setting-img[data-id="' + id + '"]');
+                $btn.prop('disabled', true);
+
+                $.ajax({
+                    url: '/Admin/Upload/Image',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        if (res && res.success && res.urls && res.urls.length > 0) {
+                            var url = res.urls[0];
+                            $('#setting_' + id).val(url);
+                            syncImagePreview(id, url);
+                            toastr.success('Đã tải ảnh lên, bấm "Lưu cấu hình" để áp dụng.');
+                        } else {
+                            toastr.error((res && res.message) || 'Không thể tải ảnh lên.');
+                        }
+                    },
+                    error: function () {
+                        toastr.error('Lỗi kết nối khi tải ảnh.');
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false);
+                        $('#file_' + id).val('');
+                    }
+                });
             });
         });
     </script>

@@ -1,0 +1,115 @@
+﻿@model List<string>
+@{
+    Layout = null;
+    var funcNum = ViewBag.CKEditorFuncNum as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Thư viện ảnh | PCShop</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="~/Content/client/plugins/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="~/Content/client/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="~/Content/admin-clean.css" />
+</head>
+<body class="admin-clean" style="padding: 20px;">
+    @Html.AntiForgeryToken()
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap: 12px;">
+        <div>
+            <h1 style="font-size: 18px; font-weight: 600; margin: 0;">Thư viện ảnh</h1>
+            <div style="font-size: 12.5px; color: var(--muted);">Chọn ảnh để chèn vào nội dung hoặc tải ảnh mới từ máy tính</div>
+        </div>
+        <div>
+            <input type="file" id="quickUploadInput" accept="image/*" multiple style="display: none;" />
+            <button type="button" id="btnQuickUpload" class="btn btn-primary btn-sm">
+                <i class="fas fa-upload"></i>
+                <span>Tải ảnh mới lên</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="browseGrid" class="image-gallery-grid">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var imgUrl in Model)
+            {
+                <div class="image-card" data-url="@imgUrl" style="cursor: pointer;" onclick="selectImage('@imgUrl')">
+                    <img src="@imgUrl" alt="Ảnh thư viện" />
+                    <div class="image-card-footer">
+                        <span class="badge-clean badge-clean-neutral" style="font-size: 11px;">Chọn ảnh</span>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="card w-100" style="grid-column: 1 / -1;">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas fa-images"></i></div>
+                    <div class="empty-state-title">Chưa có ảnh nào trong thư viện</div>
+                    <div style="font-size: 13px;">Nhấn nút "Tải ảnh mới lên" ở góc trên để thêm ảnh.</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <script src="~/Content/client/plugins/jquery/jquery.min.js"></script>
+    <script>
+        var ckFuncNum = '@HttpUtility.JavaScriptStringEncode(funcNum)';
+        var afToken = $('input[name="__RequestVerificationToken"]').first().val();
+
+        function selectImage(url) {
+            if (window.opener && window.opener.CKEDITOR && ckFuncNum) {
+                var fn = /^\d+$/.test(ckFuncNum) ? parseInt(ckFuncNum, 10) : ckFuncNum;
+                window.opener.CKEDITOR.tools.callFunction(fn, url);
+                window.close();
+            }
+        }
+
+        $('#btnQuickUpload').on('click', function () {
+            $('#quickUploadInput').trigger('click');
+        });
+
+        $('#quickUploadInput').on('change', function () {
+            var files = this.files;
+            if (!files || files.length === 0) {
+                return;
+            }
+            var formData = new FormData();
+            for (var i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+            var btn = $('#btnQuickUpload');
+            btn.prop('disabled', true);
+            $.ajax({
+                url: '/Admin/Upload/Image',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { '__RequestVerificationToken': afToken },
+                success: function (res) {
+                    if (res.success && res.urls && res.urls.length > 0) {
+                        if (res.urls.length === 1 && ckFuncNum) {
+                            selectImage(res.urls[0]);
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        alert(res.message || 'Tải ảnh thất bại.');
+                    }
+                },
+                error: function () {
+                    alert('Không thể kết nối máy chủ khi tải ảnh.');
+                },
+                complete: function () {
+                    btn.prop('disabled', false);
+                    $('#quickUploadInput').val('');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,27 +1,25 @@
 ﻿@model IEnumerable<PCShop.Models.EF.Category>
-
-<ul class="sidebar_categories">
+@{
+    int? activeCategoryId = ViewBag.CategoryID as int?;
+}
+<ul class="sf-cat-list">
+    <li class="@(activeCategoryId == null ? "active" : "")">
+        <a href="/san-pham">
+            <span>Tất cả sản phẩm</span>
+            <i class="fa fa-angle-right" aria-hidden="true"></i>
+        </a>
+    </li>
     @if (Model != null && Model.Any())
     {
-
         foreach (var item in Model)
         {
-            if (item.id == ViewBag.CategoryID)
-            {
-                <li class="active"><a href="/danh-muc/@item.alias/@(item.id)"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i></span>@item.title</a></li>
-            }
-            else
-            {
-                <li><a href="/danh-muc/@item.alias/@(item.id)">@item.title</a></li>
-            }
-
-            @*<li><a href="#">Men</a></li>
-                <li class="active"><a href="#"><span><i class="fa fa-angle-double-right" aria-hidden="true"></i></span>Women</a></li>
-                <li><a href="#">Accessories</a></li>
-                <li><a href="#">New Arrivals</a></li>
-                <li><a href="#">Collection</a></li>
-                <li><a href="#">Shop</a></li>*@
+            var isActive = activeCategoryId.HasValue && activeCategoryId.Value == item.id;
+            <li class="@(isActive ? "active" : "")">
+                <a href="/danh-muc/@item.alias/@(item.id)">
+                    <span>@item.title</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
         }
     }
-
 </ul>

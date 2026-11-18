@@ -1,4 +1,5 @@
-﻿using PCShop.Models;
+using PCShop.Models;
+using PCShop.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -8,13 +9,11 @@ using System.Web.Mvc;
 
 namespace PCShop.Areas.Admin.Controllers
 {
-    [Authorize(Roles = "Admin,Nhân viên")]
-
     public class ProductImageController : Controller
     {
         private ApplicationDbContext dbContext = new ApplicationDbContext();
 
-        // GET: Admin/ProductImage
+        [RequirePermission("Product.View", "Product.Manage")]
         public ActionResult Index(int id_product)
         {
             ViewBag.ProductID = id_product;
@@ -22,8 +21,27 @@ namespace PCShop.Areas.Admin.Controllers
             return View(item);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryTokenAjax]
+        [RequirePermission("Product.Manage")]
         public ActionResult AddImage(int productID, string url)
         {
+            if (productID <= 0 || string.IsNullOrWhiteSpace(url))
+            {
+                return Json(new { success = false, msg = "Dữ liệu ảnh không hợp lệ." });
+            }
+
+            url = url.Trim();
+            if (url.Length > 500)
+            {
+                return Json(new { success = false, msg = "Đường dẫn ảnh quá dài." });
+            }
+
+            if (!dbContext.products.Any(x => x.id == productID))
+            {
+                return Json(new { success = false, msg = "Sản phẩm không tồn tại." });
+            }
+
             dbContext.productImages.Add(new Models.EF.ProductImage
             {
                 ProductId = productID,
@@ -36,6 +54,8 @@ namespace PCShop.Areas.Admin.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryTokenAjax]
+        [RequirePermission("Product.Manage")]
         public ActionResult Delete(int id)
         {
             var item = dbContext.productImages.Find(id);
@@ -49,18 +69,6 @@ namespace PCShop.Areas.Admin.Controllers
 
         }
 
-        //[HttpPost]
-        //public ActionResult Delete(int idProduct)
-        //{
-        //    var item = dbContext.productImages.Find(idProduct);
-        //    if (item != null)
-        //    {
-        //        dbContext.productImages.RemoveRange(dbContext.productImages.Where(x => x.ProductId == idProduct));
-        //        dbContext.SaveChanges();
-        //        return Json(new { success = true });
-        //    }
-        //    return Json(new { success = false });
 
-        //}
     }
 }

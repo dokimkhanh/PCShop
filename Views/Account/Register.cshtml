@@ -1,85 +1,63 @@
 ﻿@model PCShop.Models.RegisterViewModel
 @{
-    ViewBag.Title = "Đăng ký";
+    ViewBag.Title = "Đăng ký tài khoản";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" type="text/css" href="~/Content/assets/styles/main_styles.css">
-<div class="container" style="margin-top: 180px">
-    <div class="row">
-        <div class="col-md-12">
-            <h2 id="title">@ViewBag.Title.</h2>
-
-            @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form", @class = "form-horizontal" }))
-            {
-                @Html.AntiForgeryToken()
-                <h4>Create a new account.</h4>
-                <hr />
-                @Html.ValidationSummary("", new { @class = "text-danger" })
-                <div class="">
-
-                    <div class="form-group">
-                        <label class="col-md-2 col-form-label">Tên đăng nhập</label>
-                        <div class="col-md-10">
-                            @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="col-md-2 col-form-label">Email</label>
-                        <div class="col-md-10">
-                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="col-md-2 col-form-label">Số điện thoại</label>
-                        <div class="col-md-10">
-                            @Html.TextBoxFor(m => m.Phone, new { @class = "form-control" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="col-md-2 col-form-label">Mật khẩu</label>
-                        <div class="col-md-10">
-                            @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="col-md-2 col-form-label">Nhập lại mật khẩu</label>
-                        <div class="col-md-10">
-                            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control" })
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="col-md-2 col-form-label">Họ và tên</label>
-                        <div class="col-md-10">
-                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control" })
-                        </div>
-                    </div>
-
-                    @Html.TextBoxFor(m => m.Role, new { @Value = "361a9fa5-0ec3-4154-ba7f-c25f858031bb", @type = "hidden" })
-
-                    <div class="col-md-10">
-                        <input type="submit" value="Register" class="btn btn-primary btn-block" />
-                    </div>
-                </div>
-            }
+<div class="container sf-page-wrap">
+    <div class="sf-card p-4 p-md-5 mx-auto" style="max-width: 540px;">
+        <div class="text-center mb-4">
+            <div class="mx-auto mb-3 sf-logo-mark" style="width: 42px; height: 42px; font-size: 18px;">P</div>
+            <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 4px;">Tạo tài khoản mới</h1>
+            <p style="font-size: 13.5px; color: var(--sf-muted); margin: 0;">Đăng ký để đặt hàng nhanh hơn và theo dõi lịch sử mua hàng dễ dàng.</p>
         </div>
-    </div>
 
-</div>
+        @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(false, "", new { @class = "text-danger small mb-3" })
 
-<div class="newsletter">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="newsletter_text d-flex flex-column justify-content-center align-items-lg-start align-items-md-center text-center">
-                    <h4>Đăng ký</h4>
-                    <p>Đăng kí để quản lý đơn hàng dễ dàng hơn</p>
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label for="UserName" style="font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px;">Tên đăng nhập <span class="text-danger">*</span></label>
+                    @Html.TextBoxFor(m => m.UserName, new { @class = "sf-comment-input", @placeholder = "Nhập tên đăng nhập", @autocomplete = "username" })
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="FullName" style="font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px;">Họ và tên <span class="text-danger">*</span></label>
+                    @Html.TextBoxFor(m => m.FullName, new { @class = "sf-comment-input", @placeholder = "Nguyễn Văn A" })
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label for="Email" style="font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px;">Email <span class="text-danger">*</span></label>
+                    @Html.TextBoxFor(m => m.Email, new { @class = "sf-comment-input", @placeholder = "ban@email.com", @type = "email" })
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="Phone" style="font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px;">Số điện thoại</label>
+                    @Html.TextBoxFor(m => m.Phone, new { @class = "sf-comment-input", @placeholder = "09xx xxx xxx", @type = "tel" })
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label for="Password" style="font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px;">Mật khẩu <span class="text-danger">*</span></label>
+                    @Html.PasswordFor(m => m.Password, new { @class = "sf-comment-input", @placeholder = "Nhập mật khẩu", @autocomplete = "new-password" })
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="ConfirmPassword" style="font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px;">Nhập lại mật khẩu <span class="text-danger">*</span></label>
+                    @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "sf-comment-input", @placeholder = "Xác nhận mật khẩu", @autocomplete = "new-password" })
+                </div>
+            </div>
+
+            @Html.TextBoxFor(m => m.Role, new { @Value = "361a9fa5-0ec3-4154-ba7f-c25f858031bb", @type = "hidden" })
+
+            <button type="submit" class="sf-btn-primary w-100 mt-2" style="min-height: 42px;">Đăng ký tài khoản</button>
+        }
+
+        <div class="text-center mt-4 pt-3" style="border-top: 1px solid var(--sf-border); font-size: 13.5px; color: var(--sf-muted);">
+            Đã có tài khoản?
+            <a href="/Account/Login" style="color: var(--sf-primary); font-weight: 600; text-decoration: none;">Đăng nhập</a>
         </div>
     </div>
 </div>

@@ -1,422 +1,219 @@
-﻿<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8"> <!-- utf-8 works for most cases -->
-    <meta name="viewport" content="width=device-width"> <!-- Forcing initial-scale shouldn't be necessary -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!-- Use the latest (edge) version of IE rendering engine -->
-    <meta name="x-apple-disable-message-reformatting">  <!-- Disable auto-scale in iOS 10 Mail entirely -->
-    <title></title> <!-- The title tag shows in email notifications, like Android 4.4. -->
-
-    <link href="https://fonts.googleapis.com/css?family=Work+Sans:200,300,400,500,600,700" rel="stylesheet">
-
-    <!-- CSS Reset : BEGIN -->
-    <style>
-
-        /* What it does: Remove spaces around the email design added by some email clients. */
-        /* Beware: It can remove the padding / margin and add a background color to the compose a reply window. */
-        html,
-        body {
-            margin: 0 auto !important;
-            padding: 0 !important;
-            height: 100% !important;
-            width: 100% !important;
-            background: #f1f1f1;
-        }
-
-        /* What it does: Stops email clients resizing small text. */
-        * {
-            -ms-text-size-adjust: 100%;
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <title>Xác nhận đơn hàng #{{MaDonHang}} — {{ShopName}}</title>
+    <style type="text/css">
+        body, table, td, a {
             -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
         }
 
-        /* What it does: Centers email on Android 4.4 */
-        div[style*="margin: 16px 0"] {
-            margin: 0 !important;
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
         }
 
-        /* What it does: Stops Outlook from adding extra spacing to tables. */
-        table,
-        td {
-            mso-table-lspace: 0pt !important;
-            mso-table-rspace: 0pt !important;
-        }
-
-        /* What it does: Fixes webkit padding issue. */
         table {
-            border-spacing: 0 !important;
             border-collapse: collapse !important;
-            table-layout: fixed !important;
-            margin: 0 auto !important;
         }
 
-        /* What it does: Uses a better rendering method when resizing images in IE. */
         img {
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
             -ms-interpolation-mode: bicubic;
         }
 
-        /* What it does: Prevents Windows 10 Mail from underlining links despite inline CSS. Styles for underlined links should be inline. */
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            background-color: #f6f6f8;
+        }
+
         a {
             text-decoration: none;
         }
 
-        /* What it does: A work-around for email clients meddling in triggered links. */
-        *[x-apple-data-detectors], /* iOS */
-        .unstyle-auto-detected-links *,
-        .aBn {
-            border-bottom: 0 !important;
-            cursor: default !important;
-            color: inherit !important;
-            text-decoration: none !important;
-            font-size: inherit !important;
-            font-family: inherit !important;
-            font-weight: inherit !important;
-            line-height: inherit !important;
-        }
-
-        /* What it does: Prevents Gmail from displaying a download button on large, non-linked images. */
-        .a6S {
-            display: none !important;
-            opacity: 0.01 !important;
-        }
-
-        /* What it does: Prevents Gmail from changing the text color in conversation threads. */
-        .im {
-            color: inherit !important;
-        }
-
-        /* If the above doesn't work, add a .g-img class to any image in question. */
-        img.g-img + div {
-            display: none !important;
-        }
-
-        /* What it does: Removes right gutter in Gmail iOS app: https://github.com/TedGoas/Cerberus/issues/89  */
-        /* Create one of these media queries for each additional viewport size you'd like to fix */
-
-        /* iPhone 4, 4S, 5, 5S, 5C, and 5SE */
-        @media only screen and (min-device-width: 320px) and (max-device-width: 374px) {
-            u ~ div .email-container {
-                min-width: 320px !important;
+        @media screen and (max-width: 600px) {
+            .wrap {
+                width: 100% !important;
             }
-        }
-        /* iPhone 6, 6S, 7, 8, and X */
-        @media only screen and (min-device-width: 375px) and (max-device-width: 413px) {
-            u ~ div .email-container {
-                min-width: 375px !important;
+
+            .px {
+                padding-left: 20px !important;
+                padding-right: 20px !important;
             }
-        }
-        /* iPhone 6+, 7+, and 8+ */
-        @media only screen and (min-device-width: 414px) {
-            u ~ div .email-container {
-                min-width: 414px !important;
+
+            .h1 {
+                font-size: 20px !important;
+            }
+
+            .stack {
+                display: block !important;
+                width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                box-sizing: border-box !important;
+            }
+
+            .stack-sep {
+                border-left: 0 !important;
+                border-top: 1px solid #ececef !important;
+                padding-top: 14px !important;
+                margin-top: 14px !important;
+            }
+
+            .cta-btn a {
+                display: block !important;
+                text-align: center !important;
             }
         }
     </style>
-
-    <!-- CSS Reset : END -->
-    <!-- Progressive Enhancements : BEGIN -->
-    <style>
-
-        .primary {
-            background: #17bebb;
-        }
-
-        .bg_white {
-            background: #ffffff;
-        }
-
-        .bg_light {
-            background: #f7fafa;
-        }
-
-        .bg_black {
-            background: #000000;
-        }
-
-        .bg_dark {
-            background: rgba(0,0,0,.8);
-        }
-
-        .email-section {
-            padding: 2.5em;
-        }
-
-        /*BUTTON*/
-        .btn {
-            padding: 10px 15px;
-            display: inline-block;
-        }
-
-            .btn.btn-primary {
-                border-radius: 5px;
-                background: #17bebb;
-                color: #ffffff;
-            }
-
-            .btn.btn-white {
-                border-radius: 5px;
-                background: #ffffff;
-                color: #000000;
-            }
-
-            .btn.btn-white-outline {
-                border-radius: 5px;
-                background: transparent;
-                border: 1px solid #fff;
-                color: #fff;
-            }
-
-            .btn.btn-black-outline {
-                border-radius: 0px;
-                background: transparent;
-                border: 2px solid #000;
-                color: #000;
-                font-weight: 700;
-            }
-
-        .btn-custom {
-            color: rgba(0,0,0,.3);
-            text-decoration: underline;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Work Sans', sans-serif;
-            color: #000000;
-            margin-top: 0;
-            font-weight: 400;
-        }
-
-        body {
-            font-family: 'Work Sans', sans-serif;
-            font-weight: 400;
-            font-size: 15px;
-            line-height: 1.8;
-            color: rgba(0,0,0,.4);
-        }
-
-        a {
-            color: #17bebb;
-        }
-
-        table {
-        }
-        /*LOGO*/
-
-        .logo h1 {
-            margin: 0;
-        }
-
-            .logo h1 a {
-                color: #17bebb;
-                font-size: 24px;
-                font-weight: 700;
-                font-family: 'Work Sans', sans-serif;
-            }
-
-        /*HERO*/
-        .hero {
-            position: relative;
-            z-index: 0;
-        }
-
-            .hero .text {
-                color: rgba(0,0,0,.3);
-            }
-
-                .hero .text h2 {
-                    color: #000;
-                    font-size: 34px;
-                    margin-bottom: 15px;
-                    font-weight: 300;
-                    line-height: 1.2;
-                }
-
-                .hero .text h3 {
-                    font-size: 24px;
-                    font-weight: 200;
-                }
-
-                .hero .text h2 span {
-                    font-weight: 600;
-                    color: #000;
-                }
-
-
-        /*PRODUCT*/
-        .product-entry {
-            display: block;
-            position: relative;
-            float: left;
-            padding-top: 20px;
-        }
-
-            .product-entry .text {
-                width: calc(100% - 125px);
-                padding-left: 20px;
-            }
-
-                .product-entry .text h3 {
-                    margin-bottom: 0;
-                    padding-bottom: 0;
-                }
-
-                .product-entry .text p {
-                    margin-top: 0;
-                }
-
-            .product-entry img, .product-entry .text {
-                float: left;
-            }
-
-        ul.social {
-            padding: 0;
-        }
-
-            ul.social li {
-                display: inline-block;
-                margin-right: 10px;
-            }
-
-        /*FOOTER*/
-
-        .footer {
-            border-top: 1px solid rgba(0,0,0,.05);
-            color: rgba(0,0,0,.5);
-        }
-
-            .footer .heading {
-                color: #000;
-                font-size: 20px;
-            }
-
-            .footer ul {
-                margin: 0;
-                padding: 0;
-            }
-
-                .footer ul li {
-                    list-style: none;
-                    margin-bottom: 10px;
-                }
-
-                    .footer ul li a {
-                        color: rgba(0,0,0,1);
-                    }
-
-
-        @media screen and (max-width: 500px) {
-        }
-    </style>
-
-
 </head>
+<body style="margin: 0; padding: 0; background-color: #f6f6f8;">
+    <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; color: #f6f6f8;">
+        Đơn hàng #{{MaDonHang}} ({{TongTien}} đ) đã được ghi nhận tại {{ShopName}}.
+    </div>
 
-<body width="100%" style="margin: 0; padding: 0 !important; mso-line-height-rule: exactly; background-color: #f1f1f1;">
-    <center style="width: 100%; background-color: #f1f1f1;">
-        <div style="display: none; font-size: 1px;max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-family: sans-serif;">
-            &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
-        </div>
-        <div style="max-width: 600px; margin: 0 auto;" class="email-container">
-            <!-- BEGIN BODY -->
-            <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: auto;">
-                <tr>
-                    <td valign="top" class="bg_white" style="padding: 1em 2.5em 0 2.5em;">
-                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                            <tr>
-                                <td class="logo" style="text-align: left;">
-                                    <h1><a href="#">PCShop</a></h1>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr><!-- end tr -->
-                <tr>
-                    <td valign="middle" class="hero bg_white" style="padding: 2em 0 2em 0;">
-                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                            <tr>
-                                <td style="padding: 0 2.5em; text-align: left;">
-                                    <div class="text">
-                                        <h2>Chúc mừng bạn đã đặt hàng thành công!</h2>
-                                        <h3>Đơn hàng: {{MaDonHang}}</h3>
-                                        <h3>Cảm ơn <b>{{Ten}}</b>, PCShop gửi cho bạn email này để xác nhận rằng đơn hàng của bạn đã được đặt thành công. Đơn hàng sẽ được vận chuyển đến <b>{{DiaChi}}</b> sớm nhất có thể!</h3>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr><!-- end tr -->
-                <tr>
-                    <table class="bg_white" role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                        <tr style="border-bottom: 1px solid rgba(0,0,0,.05);">
-                            <th width="80%" style="text-align:left; padding: 0 2.5em; color: #000; padding-bottom: 20px">Sản phẩm</th>
-                            <th width="20%" style="text-align:right; padding: 0 2.5em; color: #000; padding-bottom: 20px">Tổng giá</th>
-                        </tr>
-                        {{SanPham}}
-                        <!--<tr style="border-bottom: 1px solid rgba(0,0,0,.05);">
-                            <td valign="middle" width="80%" style="text-align:left; padding: 0 2.5em;">
-                                <div class="product-entry">
-                                    <img src="images/prod-2.jpg" alt="" style="width: 100px; max-width: 600px; height: auto; margin-bottom: 20px; display: block;">
-                                    <div class="text">
-                                        <h3>Analog Wrest Watch</h3>
-                                        <span>Small</span>
-                                        <p>A small river named Duden flows by their place and supplies it with the necessary regelialia.</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td valign="middle" width="20%" style="text-align:left; padding: 0 2.5em;">
-                                <span class="price" style="color: #000; font-size: 20px;">$120</span>
-                            </td>
-                        </tr>-->
-                        <tr>
-                            <td valign="middle" style="text-align:left; padding: 1em 2.5em;">
-                                <div class="text">
-                                    <h3>Tổng thanh toán: {{TongTien}}</h3>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </tr><!-- end tr -->
-                <!-- 1 Column Text + Button : END -->
-            </table>
-            <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: auto;">
-                <tr>
-                    <td valign="middle" class="bg_light footer email-section">
-                        <table>
-                            <tr>
-                                <td valign="top" width="50%" style="padding-top: 20px;">
-                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                        <tr>
-                                            <td style="text-align: left; padding-right: 10px;">
-                                                <h3 class="heading">Thông tin</h3>
-                                                <p>PCShop là đơn vị chuyên cung cấp các linh kiện, gear,... liên quan đến máy tính</p>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <td valign="top" width="50%" style="padding-top: 20px;">
-                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                        <tr>
-                                            <td style="text-align: left; padding-left: 5px; padding-right: 5px;">
-                                                <h3 class="heading">Liên hệ</h3>
-                                                <ul>
-                                                    <li><span class="text">Số nhà 23, đường Hai Bà Trưng, Hà Nội</span></li>
-                                                    <li><span class="text">1800 1234</span></a></li>
-                                                </ul>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr><!-- end: tr -->
-                <tr>
-                    <td class="bg_white" style="text-align: center;">
-                        <p>Thời gian hiện tại: <a href="#" style="color: rgba(0,0,0,.8);">{{Time}}</a></p>
-                    </td>
-                </tr>
-            </table>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f6f6f8" style="background-color: #f6f6f8;">
+        <tr>
+            <td align="center" style="padding: 32px 12px 24px 12px;">
+                <table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="width: 600px; max-width: 600px; background-color: #ffffff; border: 1px solid #e4e4e7; border-top: 3px solid #fe4c50; border-radius: 14px; overflow: hidden;">
 
-        </div>
-    </center>
+                    <tr>
+                        <td class="px" style="padding: 22px 32px; border-bottom: 1px solid #ececef;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td valign="middle" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 700; color: #18181b; letter-spacing: -0.02em;">
+                                        <a href="{{BaseUrl}}" style="color: #18181b; text-decoration: none;">{{ShopName}}</a>
+                                    </td>
+                                    <td valign="middle" align="right" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280;">
+                                        Xác nhận đơn hàng
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="px" style="padding: 28px 32px 0 32px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 14px;">
+                                <tr>
+                                    <td bgcolor="{{TrangThaiThanhToanBg}}" style="background-color: {{TrangThaiThanhToanBg}}; color: {{TrangThaiThanhToanColor}}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600; line-height: 1.2; padding: 6px 12px; border-radius: 999px;">
+                                        {{TrangThaiThanhToan}}
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <h1 class="h1" style="margin: 0 0 8px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 22px; line-height: 1.3; font-weight: 700; color: #18181b; letter-spacing: -0.02em;">
+                                Cảm ơn {{Ten}} đã đặt hàng
+                            </h1>
+                            <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.65; color: #52525b;">
+                                Đơn hàng <strong style="color: #18181b;">#{{MaDonHang}}</strong> đã được ghi nhận vào lúc {{Time}}. {{ShopName}} sẽ sớm xác nhận và bàn giao cho đơn vị vận chuyển.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="px" style="padding: 22px 32px 0 32px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#fafafa" style="background-color: #fafafa; border: 1px solid #ececef; border-radius: 10px;">
+                                <tr>
+                                    <td class="stack" width="50%" valign="top" style="padding: 16px 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.65; color: #52525b;">
+                                        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #71717a; margin-bottom: 6px;">Đơn hàng</div>
+                                        <div>Mã đơn: <strong style="color: #18181b;">#{{MaDonHang}}</strong></div>
+                                        <div>Thời gian: <span style="color: #18181b;">{{Time}}</span></div>
+                                        <div>Thanh toán: <span style="color: #18181b;">{{ThanhToan}}</span></div>
+                                    </td>
+                                    <td class="stack stack-sep" width="50%" valign="top" style="padding: 16px 18px; border-left: 1px solid #ececef; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.65; color: #52525b;">
+                                        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #71717a; margin-bottom: 6px;">Giao đến</div>
+                                        <div style="color: #18181b; font-weight: 600;">{{Ten}}</div>
+                                        <div style="color: #18181b;">{{DienThoai}}</div>
+                                        <div style="color: #52525b;">{{DiaChi}}</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="px" style="padding: 26px 32px 0 32px;">
+                            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #71717a; padding-bottom: 10px; border-bottom: 1px solid #ececef;">
+                                Sản phẩm đã đặt ({{TongSoLuong}})
+                            </div>
+
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                {{SanPham}}
+                            </table>
+
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
+                                <tr>
+                                    <td style="padding: 5px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13.5px; color: #6b7280;">
+                                        Tạm tính
+                                    </td>
+                                    <td align="right" style="padding: 5px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13.5px; color: #18181b; white-space: nowrap;">
+                                        {{TongTien}} đ
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 5px 0 14px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13.5px; color: #6b7280;">
+                                        Phí vận chuyển
+                                    </td>
+                                    <td align="right" style="padding: 5px 0 14px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13.5px; font-weight: 600; color: #047857; white-space: nowrap;">
+                                        Miễn phí
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 14px 0 0 0; border-top: 1px solid #e4e4e7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 700; color: #18181b;">
+                                        Tổng thanh toán
+                                    </td>
+                                    <td align="right" style="padding: 14px 0 0 0; border-top: 1px solid #e4e4e7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 20px; font-weight: 700; color: #18181b; white-space: nowrap; letter-spacing: -0.02em;">
+                                        {{TongTien}} đ
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="px" align="center" style="padding: 28px 32px 32px 32px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="cta-btn">
+                                <tr>
+                                    <td align="center" bgcolor="#fe4c50" style="background-color: #fe4c50; border-radius: 10px;">
+                                        <a href="{{BaseUrl}}/Account/Profile" style="display: inline-block; padding: 12px 26px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none;">
+                                            Xem đơn hàng của tôi
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="margin-top: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px;">
+                                <a href="{{BaseUrl}}/san-pham" style="color: #52525b; text-decoration: none;">Tiếp tục mua sắm tại {{ShopName}} &rarr;</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width: 600px; max-width: 600px;">
+                    <tr>
+                        <td align="center" style="padding: 20px 24px 8px 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; line-height: 1.7; color: #71717a;">
+                            <strong style="color: #3f3f46;">{{ShopName}}</strong>{{ShopAddressLine}}
+                            {{ShopContactLine}}
+                            <div style="margin-top: 6px; font-size: 11.5px; color: #a1a1aa;">
+                                &copy; {{Year}} {{ShopName}}. Email được gửi tự động, vui lòng không trả lời trực tiếp.
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

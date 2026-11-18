@@ -1,0 +1,121 @@
+﻿@model PCShop.Models.RoleFormViewModel
+@{
+    ViewBag.Title = "Cấu hình nhóm quyền";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var isAdminRole = string.Equals(Model.Name, "Admin", StringComparison.OrdinalIgnoreCase);
+    var groupedPermissions = (Model.AllPermissions ?? new List<PCShop.Models.EF.Permission>())
+        .GroupBy(p => p.Module)
+        .ToList();
+    var selectedSet = new HashSet<int>(Model.SelectedPermissionIds ?? new List<int>());
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center justify-content-between">
+            <h1>Cấu hình nhóm quyền: @Model.Name</h1>
+            <a href="@Url.Action("Index", "Role")" class="btn btn-default btn-sm">
+                <i class="fas fa-arrow-left"></i>
+                <span>Quay lại</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card">
+            @using (Html.BeginForm("Edit", "Role", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(x => x.Id)
+                <div class="card-body">
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 px-3 mb-3", @style = "border-radius: 10px; font-size: 13px;" })
+
+                    <div class="form-group" style="max-width: 480px;">
+                        <label for="Name">Tên nhóm quyền <span class="text-danger">*</span></label>
+                        @if (isAdminRole)
+                        {
+                            @Html.TextBoxFor(x => x.Name, new { @class = "form-control", @readonly = "readonly", @style = "background: var(--background);" })
+                            <small style="color: var(--muted);">Nhóm quyền Admin mặc định sở hữu toàn quyền hệ thống.</small>
+                        }
+                        else
+                        {
+                            @Html.TextBoxFor(x => x.Name, new { @class = "form-control", @placeholder = "Nhập tên nhóm quyền" })
+                        }
+                        @Html.ValidationMessageFor(x => x.Name, null, new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="pt-3 mt-4" style="border-top: 1px solid var(--border);">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap: 8px;">
+                            <div>
+                                <label class="mb-0">Danh sách quyền được cấp</label>
+                                <div style="font-size: 12.5px; color: var(--muted);">Tích chọn các quyền áp dụng cho mọi tài khoản thuộc nhóm này</div>
+                            </div>
+                            @if (!isAdminRole)
+                            {
+                                <button type="button" id="btnToggleAllPerms" class="btn btn-default btn-sm">Chọn tất cả</button>
+                            }
+                        </div>
+
+                        <div class="row">
+                            @foreach (var grp in groupedPermissions)
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <div style="border: 1px solid var(--border-strong); border-radius: 12px; padding: 14px 16px; height: 100%; background: var(--surface);">
+                                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2" style="border-bottom: 1px solid var(--border);">
+                                            <strong style="font-size: 13.5px;">@grp.Key</strong>
+                                            @if (!isAdminRole)
+                                            {
+                                                <button type="button" class="btn-module-toggle" style="border: 0; background: transparent; color: var(--primary); font-size: 12px; font-weight: 500; cursor: pointer;">Chọn nhóm</button>
+                                            }
+                                        </div>
+                                        <div class="module-perm-list">
+                                            @foreach (var perm in grp)
+                                            {
+                                                var isChecked = isAdminRole || selectedSet.Contains(perm.Id);
+                                                <div class="custom-control custom-checkbox mb-2">
+                                                    <input type="checkbox" class="custom-control-input perm-checkbox" id="perm_@perm.Id" name="SelectedPermissionIds" value="@perm.Id" @(isChecked ? "checked" : "") @(isAdminRole ? "disabled" : "") />
+                                                    <label class="custom-control-label" for="perm_@perm.Id" style="font-weight: 400; cursor: pointer;">
+                                                        <span style="font-weight: 500; color: var(--foreground);">@perm.Name</span>
+                                                        <span class="d-block" style="font-size: 11.5px; color: var(--muted);">@perm.Code @(string.IsNullOrWhiteSpace(perm.Description) ? "" : "· " + perm.Description)</span>
+                                                    </label>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer d-flex align-items-center justify-content-end" style="gap: 8px;">
+                    <a href="@Url.Action("Index", "Role")" class="btn btn-default">Huỷ</a>
+                    @if (!isAdminRole)
+                    {
+                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section scripts {
+    <script>
+        $(function () {
+            $('#btnToggleAllPerms').on('click', function () {
+                var all = $('.perm-checkbox:not(:disabled)');
+                var allChecked = all.length > 0 && all.filter(':checked').length === all.length;
+                all.prop('checked', !allChecked);
+                $(this).text(allChecked ? 'Chọn tất cả' : 'Bỏ chọn tất cả');
+            });
+
+            $('.btn-module-toggle').on('click', function () {
+                var boxes = $(this).closest('div').next('.module-perm-list').find('.perm-checkbox:not(:disabled)');
+                var allChecked = boxes.length > 0 && boxes.filter(':checked').length === boxes.length;
+                boxes.prop('checked', !allChecked);
+            });
+        });
+    </script>
+}

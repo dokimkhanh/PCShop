@@ -1,33 +1,30 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@{
+    var loginFavicon = PCShop.Models.Common.SettingsHelper.GetValue("SeoFavicon");
+    if (string.IsNullOrWhiteSpace(loginFavicon)) { loginFavicon = "/favicon.ico"; }
+}
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Đăng nhập quản trị</title>
+    <title>Đăng nhập quản trị | PCShop</title>
+    <link rel="icon" href="@loginFavicon" />
 
-    <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="~/Content/assets/plugins/fontawesome-free/css/all.min.css">
-    <!-- icheck bootstrap -->
-    <link rel="stylesheet" href="~/Content/assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
-    <!-- Theme style -->
-    <link rel="stylesheet" href="~/Content/assets/dist/css/adminlte.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="~/Content/client/plugins/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="~/Content/client/dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="~/Content/admin-clean.css" />
 </head>
-<body class="hold-transition login-page">
-    <div class="login-box">
-        <!-- /.login-logo -->
-        <div class="card card-outline card-primary">
+<body class="admin-clean admin-login-body">
+    <div class="admin-login-box">
+        <div class="admin-login-card">
             @RenderBody()
         </div>
-        <!-- /.card -->
     </div>
-    <!-- /.login-box -->
-    <!-- jQuery -->
-    <script src="~/Content/assets/plugins/jquery/jquery.min.js"></script>
-    <!-- Bootstrap 4 -->
-    <script src="~/Content/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <!-- AdminLTE App -->
-    <script src="~/Content/assets/dist/js/adminlte.min.js"></script>
+
+    <script src="~/Content/client/plugins/jquery/jquery.min.js"></script>
+    <script src="~/Content/client/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

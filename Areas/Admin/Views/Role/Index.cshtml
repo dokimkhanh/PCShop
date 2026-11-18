@@ -1,100 +1,227 @@
-﻿@using Microsoft.AspNet.Identity.EntityFramework
-@model IEnumerable<IdentityRole>
+﻿@model PCShop.Models.RoleManagementViewModel
+@using PCShop.Models.Common
 @{
-    ViewBag.Title = "Quản lý quyền";
+    ViewBag.Title = "Quản lý phân quyền";
+    var antiForgeryToken = Html.AntiForgeryToken();
+    var canManage = PermissionHelper.HasPermission(User, "Role.Manage");
+    var currentSearch = ViewBag.CurrentSearch as string;
+    var totalRoleCount = ViewBag.TotalRoleCount != null ? (int)ViewBag.TotalRoleCount : Model.Roles.Count;
+    var totalPermCount = ViewBag.TotalPermissionCount != null ? (int)ViewBag.TotalPermissionCount : Model.Permissions.Count;
 }
 
-
-<!-- Content Header (Page header) -->
 <section class="content-header">
     <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1>Quản lý quyền</h1>
-            </div>
-        </div>
+        <h1>Quản lý phân quyền</h1>
     </div>
-    <!-- /.container-fluid -->
 </section>
 
-<!-- Main content -->
 <section class="content">
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Danh sách quyền</h3>
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success mb-3" style="border-radius: 12px; font-size: 13.5px;">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger mb-3" style="border-radius: 12px; font-size: 13.5px;">@TempData["Error"]</div>
+        }
+
+        <div class="admin-toolbar">
+            <div class="admin-toolbar-left">
+                <div class="admin-tabs">
+                    <a href="@Url.Action("Index", "Role", new { tab = "groups", txtSearch = currentSearch })" class="admin-tab-item @(Model.ActiveTab == "groups" ? "active" : "")">
+                        <span>Nhóm quyền</span>
+                        <span class="admin-tab-count">@totalRoleCount</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Role", new { tab = "permissions", txtSearch = currentSearch })" class="admin-tab-item @(Model.ActiveTab == "permissions" ? "active" : "")">
+                        <span>Danh sách quyền</span>
+                        <span class="admin-tab-count">@totalPermCount</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-toolbar-right">
+                @using (Html.BeginForm("Index", "Role", FormMethod.Get, new { @class = "d-flex align-items-center", @style = "gap: 8px;" }))
+                {
+                    <input type="hidden" name="tab" value="@Model.ActiveTab" />
+                    <div class="admin-search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="search" name="txtSearch" value="@currentSearch" class="form-control" placeholder="@(Model.ActiveTab == "groups" ? "Tìm tên nhóm quyền..." : "Tìm tên quyền, mã, phân hệ...")" />
                     </div>
-                    <!-- /.card-header -->
-                    <div class="card-body">
-                        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
-                            <div class="row mb-2">
-                                <div class="col-sm-12 col-md-6">
-                                    <div class="float-sm-left">
+                    <button type="submit" class="btn btn-default">Tìm</button>
+                }
+                @if (canManage)
+                {
+                    if (Model.ActiveTab == "groups")
+                    {
+                        <a href="@Url.Action("Add", "Role")" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            <span>Thêm nhóm quyền</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("AddPermission", "Role")" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            <span>Thêm quyền</span>
+                        </a>
+                    }
+                }
+            </div>
+        </div>
 
-                                    </div>
-                                </div>
-                                <div class="col-sm-12 col-md-6">
-                                    <div class="float-sm-right">
-                                        <a type="button" href="/Admin/Role/Add" class="btn btn-primary">Thêm mới</a>
-                                        <a type="button" href="#" class="btn btn-danger" id="btnDeleteAll">Xoá tin tức đã chọn</a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-12">
-
-                                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Tên quyền</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (Model != null && Model.Any())
+        @if (Model.ActiveTab == "groups")
+        {
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="width: 56px;">#</th>
+                                <th>Tên nhóm quyền</th>
+                                <th>Số quyền được cấp</th>
+                                <th class="text-right">Tài khoản</th>
+                                @if (canManage)
+                                {
+                                    <th class="text-right" style="width: 110px;">Thao tác</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Roles != null && Model.Roles.Any())
+                            {
+                                var index = 1;
+                                foreach (var item in Model.Roles)
+                                {
+                                    var isAdmin = string.Equals(item.Name, "Admin", StringComparison.OrdinalIgnoreCase);
+                                    <tr>
+                                        <td class="tabular-nums" style="color: var(--muted);">@index</td>
+                                        <td>
+                                            <div style="font-weight: 600;">@item.Name</div>
+                                            @if (isAdmin)
                                             {
-
-                                                foreach (var item in Model)
-                                                {
-                                                    <tr>
-                                                        <td width="500" class="dtr-control sorting_1">@item.Id</td>
-                                                        <td>@item.Name</td>
-                                                        <td>
-                                                            <a href="/Admin/News/Edit/@item.Id" class="btn btn-primary">Sửa</a>
-                                                            <a href="#" data-id="@item.Id" class="btn btn-danger" id="btnDelete">Xoá</a>
-                                                        </td>
-                                                    </tr>
-                                                }
-
+                                                <div style="font-size: 12px; color: var(--muted);">Toàn quyền quản trị hệ thống</div>
+                                            }
+                                            else if (item.PermissionCount == 0)
+                                            {
+                                                <div style="font-size: 12px; color: var(--muted);">Không có quyền truy cập trang quản trị</div>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (isAdmin || item.PermissionCount == item.TotalPermissions)
+                                            {
+                                                <span class="badge-clean badge-clean-success tabular-nums">@item.PermissionCount / @item.TotalPermissions quyền</span>
+                                            }
+                                            else if (item.PermissionCount > 0)
+                                            {
+                                                <span class="badge-clean badge-clean-warning tabular-nums">@item.PermissionCount / @item.TotalPermissions quyền</span>
                                             }
                                             else
                                             {
-                                                <tr>
-                                                    <td>Chưa có dữ liệu</td>
-                                                </tr>
+                                                <span class="badge-clean badge-clean-neutral tabular-nums">0 / @item.TotalPermissions quyền</span>
                                             }
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Tên quyền</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- /.card-body -->
+                                        </td>
+                                        <td class="text-right tabular-nums" style="font-weight: 500;">@item.UserCount</td>
+                                        @if (canManage)
+                                        {
+                                            <td class="text-right" style="white-space: nowrap;">
+                                                <a href="@Url.Action("Edit", "Role", new { id = item.Id })" class="btn-icon" title="Cấu hình quyền" aria-label="Cấu hình quyền">
+                                                    <i class="fas fa-pen"></i>
+                                                </a>
+                                                @if (!isAdmin)
+                                                {
+                                                    using (Html.BeginForm("Delete", "Role", new { id = item.Id }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Bạn có chắc chắn muốn xoá nhóm quyền này?');" }))
+                                                    {
+                                                        @antiForgeryToken
+                                                        <button type="submit" class="btn-icon btn-icon-danger" title="Xoá nhóm quyền" aria-label="Xoá">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    }
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                    index++;
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state">Chưa có nhóm quyền nào.</div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
-                <!-- /.card -->
             </div>
-            <!-- /.col -->
-        </div>
-        <!-- /.row -->
+        }
+        else
+        {
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="width: 56px;">#</th>
+                                <th>Tên quyền</th>
+                                <th>Mã quyền</th>
+                                <th>Phân hệ</th>
+                                <th>Mô tả</th>
+                                @if (canManage)
+                                {
+                                    <th class="text-right" style="width: 110px;">Thao tác</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Permissions != null && Model.Permissions.Any())
+                            {
+                                var index = 1;
+                                foreach (var perm in Model.Permissions)
+                                {
+                                    <tr>
+                                        <td class="tabular-nums" style="color: var(--muted);">@index</td>
+                                        <td style="font-weight: 500;">@perm.Name</td>
+                                        <td>
+                                            <code style="background: var(--background); color: var(--foreground); padding: 2px 7px; border-radius: 6px; font-size: 12px;">@perm.Code</code>
+                                        </td>
+                                        <td>
+                                            <span class="badge-clean badge-clean-neutral">@perm.Module</span>
+                                        </td>
+                                        <td style="color: var(--muted); font-size: 13px;">@(string.IsNullOrWhiteSpace(perm.Description) ? "—" : perm.Description)</td>
+                                        @if (canManage)
+                                        {
+                                            <td class="text-right" style="white-space: nowrap;">
+                                                <a href="@Url.Action("EditPermission", "Role", new { id = perm.Id })" class="btn-icon" title="Sửa quyền" aria-label="Sửa">
+                                                    <i class="fas fa-pen"></i>
+                                                </a>
+                                                @using (Html.BeginForm("DeletePermission", "Role", new { id = perm.Id }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Bạn có chắc chắn muốn xoá quyền này?');" }))
+                                                {
+                                                    @antiForgeryToken
+                                                    <button type="submit" class="btn-icon btn-icon-danger" title="Xoá quyền" aria-label="Xoá">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                    index++;
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6">
+                                        <div class="empty-state">Chưa có quyền nào được định nghĩa.</div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
     </div>
-    <!-- /.container-fluid -->
 </section>
-<!-- /.content -->

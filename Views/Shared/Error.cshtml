@@ -1,9 +1,19 @@
 ﻿@model System.Web.Mvc.HandleErrorInfo
-
 @{
-    ViewBag.Title = "Error";
+    ViewBag.Title = "Đã xảy ra lỗi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
-
+<div class="container sf-page-wrap">
+    <div class="sf-card p-4 p-md-5 text-center mx-auto" style="max-width: 520px;">
+        <div class="mx-auto mb-3 d-inline-flex align-items-center justify-content-center" style="width: 56px; height: 56px; border-radius: 16px; background: var(--sf-danger-bg); color: var(--sf-danger); font-size: 24px;">
+            <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+        </div>
+        <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Đã xảy ra sự cố</h1>
+        <p style="font-size: 14px; color: var(--sf-muted); margin-bottom: 20px;">Hệ thống gặp lỗi khi xử lý yêu cầu của bạn. Vui lòng thử lại hoặc quay về trang chủ.</p>
+        <div class="d-flex flex-wrap justify-content-center" style="gap: 10px;">
+            <a href="/" class="sf-btn-primary px-4">Về trang chủ</a>
+            <a href="/lien-he" class="sf-btn-outline px-4">Liên hệ hỗ trợ</a>
+        </div>
+    </div>
+</div>

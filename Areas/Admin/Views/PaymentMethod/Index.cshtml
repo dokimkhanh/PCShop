@@ -1,0 +1,428 @@
+﻿@model List<PCShop.Models.Common.PaymentMethodInfo>
+@using PCShop.Models.Common
+@{
+    ViewBag.Title = "Phương thức thanh toán";
+    var methods = Model ?? new List<PaymentMethodInfo>();
+    var offlineMethods = methods.Where(x => !x.IsOnline).ToList();
+    var onlineMethods = methods.Where(x => x.IsOnline).ToList();
+    var enabledCount = methods.Count(x => x.IsEnabled);
+    var totalCount = methods.Count;
+    var vnpay = ViewBag.VnpayConfig as VnpayConfigInfo ?? new VnpayConfigInfo { Environment = "sandbox" };
+    var canManage = ViewBag.CanManage != null && (bool)ViewBag.CanManage;
+    var isProduction = string.Equals(vnpay.Environment, "production", StringComparison.OrdinalIgnoreCase);
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="pm-shell">
+            <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 12px;">
+                <div>
+                    <h1 class="mb-1">Phương thức thanh toán</h1>
+                    <div style="font-size: 13.5px; color: var(--muted);">Quản lý các kênh thanh toán hiển thị trên trang Thanh toán và cấu hình kết nối cổng VNPAY.</div>
+                </div>
+                <span id="pmEnabledSummary" class="badge-clean @(enabledCount > 0 ? "badge-clean-success" : "badge-clean-danger") tabular-nums" style="padding: 6px 12px; font-size: 12.5px;">
+                    @enabledCount / @totalCount kênh đang bật
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="pm-shell">
+            <div id="pmZeroBanner" role="alert" class="pm-banner pm-banner-error mb-4" style="display: @(enabledCount == 0 ? "flex" : "none");">
+                <i class="fas fa-exclamation-circle pm-banner-icon"></i>
+                <div class="pm-banner-body">
+                    <div class="pm-banner-title">Chưa có phương thức thanh toán nào đang bật</div>
+                    <div class="pm-banner-desc">Khách hàng sẽ không thể hoàn tất đặt hàng trên trang Thanh toán cho đến khi bạn bật ít nhất một phương thức bên dưới.</div>
+                </div>
+            </div>
+
+            @if (!vnpay.IsConfigured)
+            {
+                <div role="status" class="pm-banner pm-banner-warning mb-4">
+                    <i class="fas fa-exclamation-triangle pm-banner-icon"></i>
+                    <div class="pm-banner-body">
+                        <div class="pm-banner-title">Cổng VNPAY chưa đủ thông số kết nối</div>
+                        <div class="pm-banner-desc">Cần điền đủ Mã website (TmnCode), Chuỗi bí mật (HashSecret) và URL nhận kết quả trước khi bật các kênh thanh toán trực tuyến.</div>
+                    </div>
+                    <div class="pm-banner-actions">
+                        <a href="#vnpay-config-card" class="btn btn-default btn-sm">Điền cấu hình VNPAY</a>
+                    </div>
+                </div>
+            }
+
+            @if (TempData["Success"] != null)
+            {
+                <div id="pmServerSuccessToast" data-msg="@TempData["Success"]" style="display: none;"></div>
+            }
+
+            <div class="pm-section-label">Thanh toán ngoại tuyến</div>
+            <div class="card mb-4">
+                <div class="pm-list">
+                    @foreach (var item in offlineMethods)
+                    {
+                        <div class="pm-row" data-code="@item.Code">
+                            <div class="pm-row-main">
+                                <div class="pm-icon-box">
+                                    <i class="@item.IconClass"></i>
+                                </div>
+                                <div class="pm-row-text">
+                                    <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+                                        <span class="pm-row-title" id="pm_title_@item.Code">@item.Title</span>
+                                        <span id="pm_badge_@item.Code" class="badge-clean @(item.IsEnabled ? "badge-clean-success" : "badge-clean-neutral")">
+                                            @(item.IsEnabled ? "Đang bật" : "Đang tắt")
+                                        </span>
+                                        <span id="pm_state_@item.Code" class="pm-inline-state"></span>
+                                    </div>
+                                    <div class="pm-row-desc" id="pm_desc_@item.Code">@item.Description</div>
+                                </div>
+                            </div>
+                            <div class="pm-row-controls">
+                                @if (canManage)
+                                {
+                                    <button type="button" class="btn btn-default btn-sm pm-btn-edit" data-code="@item.Code">Chỉnh sửa</button>
+                                }
+                                <label class="pm-switch @(canManage ? "" : "is-disabled")" title="@(canManage ? "Bật hoặc tắt phương thức này" : "Bạn không có quyền thay đổi")">
+                                    <input type="checkbox" class="pm-toggle-input" data-code="@item.Code" data-online="false" @(item.IsEnabled ? "checked" : "") @(canManage ? "" : "disabled") />
+                                    <span class="pm-switch-track">
+                                        <span class="pm-switch-thumb"></span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between mb-2" style="gap: 8px;">
+                <div class="pm-section-label mb-0">Thanh toán trực tuyến (VNPAY)</div>
+                @if (!vnpay.IsConfigured)
+                {
+                    <span class="badge-clean badge-clean-neutral">Chưa cấu hình khóa</span>
+                }
+                else if (isProduction)
+                {
+                    <span class="badge-clean badge-clean-success">Production · Đã sẵn sàng</span>
+                }
+                else
+                {
+                    <span class="badge-clean badge-clean-warning">Sandbox · Chế độ kiểm thử</span>
+                }
+            </div>
+            <div class="card mb-4">
+                <div class="pm-list">
+                    @foreach (var item in onlineMethods)
+                    {
+                        <div class="pm-row" data-code="@item.Code">
+                            <div class="pm-row-main">
+                                <div class="pm-icon-box">
+                                    <i class="@item.IconClass"></i>
+                                </div>
+                                <div class="pm-row-text">
+                                    <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+                                        <span class="pm-row-title" id="pm_title_@item.Code">@item.Title</span>
+                                        <span id="pm_badge_@item.Code" class="badge-clean @(item.IsEnabled ? "badge-clean-success" : "badge-clean-neutral")">
+                                            @(item.IsEnabled ? "Đang bật" : "Đang tắt")
+                                        </span>
+                                        <span id="pm_state_@item.Code" class="pm-inline-state"></span>
+                                    </div>
+                                    <div class="pm-row-desc" id="pm_desc_@item.Code">@item.Description</div>
+                                </div>
+                            </div>
+                            <div class="pm-row-controls">
+                                @if (canManage)
+                                {
+                                    <button type="button" class="btn btn-default btn-sm pm-btn-edit" data-code="@item.Code">Chỉnh sửa</button>
+                                }
+                                <label class="pm-switch @(canManage ? "" : "is-disabled")" title="@(canManage ? "Bật hoặc tắt phương thức này" : "Bạn không có quyền thay đổi")">
+                                    <input type="checkbox" class="pm-toggle-input" data-code="@item.Code" data-online="true" @(item.IsEnabled ? "checked" : "") @(canManage ? "" : "disabled") />
+                                    <span class="pm-switch-track">
+                                        <span class="pm-switch-thumb"></span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="pm-section-label">Kết nối cổng thanh toán VNPAY</div>
+            <div class="card mb-4" id="vnpay-config-card">
+                @using (Html.BeginForm("SaveVnpayConfig", "PaymentMethod", FormMethod.Post, new { @id = "vnpayConfigForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="pm-form-rows">
+                        <div class="pm-form-row">
+                            <div class="pm-form-label">
+                                <label class="mb-0">Môi trường</label>
+                            </div>
+                            <div class="pm-form-control">
+                                <div class="pm-segmented" role="radiogroup" aria-label="Môi trường VNPAY">
+                                    <label class="pm-seg-item @(!isProduction ? "is-active" : "")">
+                                        <input type="radio" name="environment" value="sandbox" @(!isProduction ? "checked" : "") @(canManage ? "" : "disabled") />
+                                        <span>Sandbox (Kiểm thử)</span>
+                                    </label>
+                                    <label class="pm-seg-item @(isProduction ? "is-active" : "")">
+                                        <input type="radio" name="environment" value="production" @(isProduction ? "checked" : "") @(canManage ? "" : "disabled") />
+                                        <span>Production (Chạy thật)</span>
+                                    </label>
+                                </div>
+                                <div class="pm-help">Sandbox dùng thẻ thử nghiệm của VNPAY, không trừ tiền thật.</div>
+                            </div>
+                        </div>
+
+                        <div class="pm-form-row">
+                            <div class="pm-form-label">
+                                <label for="vnpUrl" class="mb-0">Payment URL</label>
+                            </div>
+                            <div class="pm-form-control">
+                                <input type="url" id="vnpUrl" name="vnpUrl" value="@vnpay.Url" class="form-control" @(canManage ? "" : "readonly") placeholder="@PaymentConfigHelper.DefaultSandboxUrl" />
+                            </div>
+                        </div>
+
+                        <div class="pm-form-row">
+                            <div class="pm-form-label">
+                                <label for="tmnCode" class="mb-0">Mã website (TmnCode)</label>
+                            </div>
+                            <div class="pm-form-control">
+                                <input type="text" id="tmnCode" name="tmnCode" value="@vnpay.TmnCode" class="form-control" @(canManage ? "" : "readonly") placeholder="VD: 6PBFDVPO" autocomplete="off" />
+                                @if (vnpay.TmnCodeFromServer)
+                                {
+                                    <div class="pm-help">Đang đọc giá trị mặc định từ cấu hình máy chủ (Web.config).</div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="pm-form-row">
+                            <div class="pm-form-label">
+                                <label for="hashSecret" class="mb-0">Chuỗi bí mật (HashSecret)</label>
+                            </div>
+                            <div class="pm-form-control">
+                                <div class="pm-secret-wrap">
+                                    <input type="password" id="hashSecret" name="hashSecret" value="" class="form-control" @(canManage ? "" : "readonly") placeholder="@(vnpay.HasHashSecret ? "Đã cấu hình — để trống để giữ nguyên" : "Nhập chuỗi HashSecret do VNPAY cấp")" autocomplete="new-password" />
+                                    <button type="button" id="btnToggleSecret" class="pm-secret-toggle" aria-label="Hiện hoặc ẩn chuỗi bí mật">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                @if (vnpay.HasHashSecret)
+                                {
+                                    <div class="pm-help">
+                                        @(vnpay.HashSecretFromServer ? "Đã có chuỗi bí mật trên cấu hình máy chủ. Nhập giá trị mới nếu muốn ghi đè." : "Đã lưu chuỗi bí mật. Để trống nếu không muốn thay đổi.")
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="pm-form-row">
+                            <div class="pm-form-label">
+                                <label for="returnUrl" class="mb-0">URL nhận kết quả</label>
+                            </div>
+                            <div class="pm-form-control">
+                                <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+                                    <input type="url" id="returnUrl" name="returnUrl" value="@vnpay.ReturnUrl" class="form-control flex-grow-1" style="min-width: 240px; width: auto;" @(canManage ? "" : "readonly") placeholder="https://tenmien.com/Cart/VnpayReturn" />
+                                    @if (canManage)
+                                    {
+                                        <button type="button" id="btnFillReturnUrl" class="btn btn-default btn-sm">Dùng domain hiện tại</button>
+                                    }
+                                </div>
+                                <div class="pm-help">VNPAY sẽ chuyển khách hàng về đường dẫn này sau khi hoàn tất thanh toán.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    if (canManage)
+                    {
+                        <div class="card-footer d-flex flex-wrap align-items-center justify-content-between" style="gap: 12px; background: var(--surface); border-top: 1px solid var(--border); padding: 14px 20px;">
+                            <div style="font-size: 12.5px; color: var(--muted);">Các công tắc ở trên tự động lưu ngay khi gạt. Nút bên phải chỉ lưu cấu hình VNPAY.</div>
+                            <button type="submit" class="btn btn-primary">Lưu cấu hình VNPAY</button>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (canManage)
+{
+    <div class="modal fade" id="pmEditModal" tabindex="-1" role="dialog" aria-labelledby="pmEditModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pmEditModalLabel">Chỉnh sửa phương thức thanh toán</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="pmEditForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="pmEditCode" />
+                        <div class="form-group">
+                            <label for="pmEditTitle" style="font-weight: 500; font-size: 13.5px;">Tên hiển thị cho khách hàng <span class="text-danger">*</span></label>
+                            <input type="text" id="pmEditTitle" class="form-control" maxlength="120" required />
+                        </div>
+                        <div class="form-group mb-0">
+                            <label for="pmEditDescription" style="font-weight: 500; font-size: 13.5px;">Mô tả hướng dẫn ngắn</label>
+                            <textarea id="pmEditDescription" class="form-control" rows="3" maxlength="300" placeholder="Hướng dẫn ngắn gọn hiển thị dưới tên phương thức trên trang Thanh toán..."></textarea>
+                            <div class="pm-help mt-1">Nên ngắn gọn trong 1–2 dòng để khách dễ đọc khi chọn thanh toán.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Huỷ</button>
+                        <button type="submit" id="pmEditSaveBtn" class="btn btn-primary">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section scripts {
+    <script>
+        $(function () {
+            var sandboxUrl = '@PaymentConfigHelper.DefaultSandboxUrl';
+            var prodUrl = '@PaymentConfigHelper.DefaultProductionUrl';
+
+            var serverToast = $('#pmServerSuccessToast').data('msg');
+            if (serverToast && window.toastr) {
+                toastr.success(serverToast);
+            }
+
+            $('.pm-toggle-input').on('change', function () {
+                var $input = $(this);
+                var code = $input.data('code');
+                var nextState = $input.is(':checked');
+                var $state = $('#pm_state_' + code);
+                var $badge = $('#pm_badge_' + code);
+
+                $input.prop('disabled', true);
+                $state.removeClass('is-saved is-error').text('Đang lưu...');
+
+                $.ajax({
+                    url: '/Admin/PaymentMethod/Toggle',
+                    type: 'POST',
+                    data: { code: code, enabled: nextState },
+                    success: function (res) {
+                        if (res && res.success) {
+                            $badge
+                                .toggleClass('badge-clean-success', nextState)
+                                .toggleClass('badge-clean-neutral', !nextState)
+                                .text(nextState ? 'Đang bật' : 'Đang tắt');
+
+                            var $summary = $('#pmEnabledSummary');
+                            $summary
+                                .toggleClass('badge-clean-success', res.enabledCount > 0)
+                                .toggleClass('badge-clean-danger', res.enabledCount === 0)
+                                .text(res.enabledCount + ' / ' + res.totalCount + ' kênh đang bật');
+
+                            $('#pmZeroBanner').css('display', res.enabledCount === 0 ? 'flex' : 'none');
+
+                            $state.addClass('is-saved').text('Đã lưu');
+                            setTimeout(function () {
+                                $state.fadeOut(200, function () {
+                                    $(this).text('').show().removeClass('is-saved');
+                                });
+                            }, 1800);
+                        } else {
+                            $input.prop('checked', !nextState);
+                            $state.addClass('is-error').text('');
+                            if (window.toastr) {
+                                toastr.error((res && res.message) || 'Không thể cập nhật trạng thái.');
+                            }
+                            if (res && res.requireVnpayConfig) {
+                                $('html, body').animate({ scrollTop: $('#vnpay-config-card').offset().top - 72 }, 250);
+                                $('#tmnCode').focus();
+                            }
+                        }
+                    },
+                    error: function () {
+                        $input.prop('checked', !nextState);
+                        $state.text('');
+                        if (window.toastr) {
+                            toastr.error('Lỗi kết nối khi lưu thay đổi.');
+                        }
+                    },
+                    complete: function () {
+                        $input.prop('disabled', false);
+                    }
+                });
+            });
+
+            $('.pm-btn-edit').on('click', function () {
+                var code = $(this).data('code');
+                $('#pmEditCode').val(code);
+                $('#pmEditTitle').val($.trim($('#pm_title_' + code).text()));
+                $('#pmEditDescription').val($.trim($('#pm_desc_' + code).text()));
+                $('#pmEditModal').modal('show');
+            });
+
+            $('#pmEditForm').on('submit', function (e) {
+                e.preventDefault();
+                var code = $('#pmEditCode').val();
+                var title = $.trim($('#pmEditTitle').val());
+                var description = $.trim($('#pmEditDescription').val());
+                var $btn = $('#pmEditSaveBtn');
+
+                if (!title) {
+                    if (window.toastr) {
+                        toastr.error('Tên hiển thị không được để trống.');
+                    }
+                    return;
+                }
+
+                $btn.prop('disabled', true).text('Đang lưu...');
+                $.ajax({
+                    url: '/Admin/PaymentMethod/UpdateMethod',
+                    type: 'POST',
+                    data: { code: code, title: title, description: description },
+                    success: function (res) {
+                        if (res && res.success) {
+                            $('#pm_title_' + code).text(res.title);
+                            $('#pm_desc_' + code).text(res.description);
+                            $('#pmEditModal').modal('hide');
+                            if (window.toastr) {
+                                toastr.success(res.message || 'Đã cập nhật.');
+                            }
+                        } else if (window.toastr) {
+                            toastr.error((res && res.message) || 'Không thể cập nhật.');
+                        }
+                    },
+                    error: function () {
+                        if (window.toastr) {
+                            toastr.error('Lỗi kết nối khi lưu.');
+                        }
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false).text('Lưu thay đổi');
+                    }
+                });
+            });
+
+            $('input[name="environment"]').on('change', function () {
+                var val = $(this).val();
+                $('.pm-seg-item').removeClass('is-active');
+                $(this).closest('.pm-seg-item').addClass('is-active');
+
+                var currentUrl = $.trim($('#vnpUrl').val());
+                if (val === 'production' && (!currentUrl || currentUrl === sandboxUrl)) {
+                    $('#vnpUrl').val(prodUrl);
+                } else if (val === 'sandbox' && (!currentUrl || currentUrl === prodUrl)) {
+                    $('#vnpUrl').val(sandboxUrl);
+                }
+            });
+
+            $('#btnToggleSecret').on('click', function () {
+                var $input = $('#hashSecret');
+                var isPassword = $input.attr('type') === 'password';
+                $input.attr('type', isPassword ? 'text' : 'password');
+                $(this).find('i').toggleClass('fa-eye', !isPassword).toggleClass('fa-eye-slash', isPassword);
+            });
+
+            $('#btnFillReturnUrl').on('click', function () {
+                $('#returnUrl').val(window.location.origin + '/Cart/VnpayReturn');
+            });
+        });
+    </script>
+}

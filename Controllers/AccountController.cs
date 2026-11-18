@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
@@ -162,6 +162,14 @@ namespace PCShop.Controllers
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    var roleResult = await UserManager.AddToRoleAsync(user.Id, "Customer");
+                    if (!roleResult.Succeeded)
+                    {
+                        await UserManager.DeleteAsync(user);
+                        AddErrors(roleResult);
+                        return View(model);
+                    }
+
                     await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
 
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
@@ -402,12 +410,87 @@ namespace PCShop.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        //
-        // GET: /Account/ExternalLoginFailure
         [AllowAnonymous]
         public ActionResult ExternalLoginFailure()
         {
             return View();
+        }
+
+        private System.Collections.Generic.List<PCShop.Models.EF.Order> LoadUserOrders(ApplicationUser user)
+        {
+            if (user == null)
+            {
+                return new System.Collections.Generic.List<PCShop.Models.EF.Order>();
+            }
+
+            using (var db = new ApplicationDbContext())
+            {
+                var userName = (user.UserName ?? string.Empty).Trim();
+                var email = (user.Email ?? string.Empty).Trim();
+                var phone = (user.Phone ?? string.Empty).Trim();
+                return db.orders
+                    .AsNoTracking()
+                    .Where(x =>
+                        (!string.IsNullOrEmpty(userName) && x.createdBy == userName) ||
+                        (!string.IsNullOrEmpty(email) && x.email == email) ||
+                        (!string.IsNullOrEmpty(phone) && x.phone == phone))
+                    .OrderByDescending(x => x.createdDate)
+                    .Take(50)
+                    .ToList();
+            }
+        }
+
+        [Authorize]
+        public new ActionResult Profile()
+        {
+            var userId = User.Identity.GetUserId();
+            var user = UserManager.FindById(userId);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var model = new UserProfileViewModel
+            {
+                UserName = user.UserName,
+                FullName = user.FullName,
+                Email = user.Email,
+                Phone = user.Phone,
+                Orders = LoadUserOrders(user)
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public new async Task<ActionResult> Profile(UserProfileViewModel model)
+        {
+            var userId = User.Identity.GetUserId();
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (ModelState.IsValid)
+            {
+                user.FullName = model.FullName;
+                user.Email = model.Email;
+                user.Phone = model.Phone;
+                var result = await UserManager.UpdateAsync(user);
+                if (result.Succeeded)
+                {
+                    TempData["ProfileSuccess"] = "Cập nhật thông tin tài khoản thành công.";
+                    return RedirectToAction("Profile");
+                }
+                AddErrors(result);
+            }
+
+            model.Orders = LoadUserOrders(user);
+            model.UserName = user.UserName;
+            return View(model);
         }
 
         protected override void Dispose(bool disposing)

@@ -1,10 +1,8 @@
-﻿using PCShop.Models;
-using PCShop.Models.EF;
+using PCShop.Models;
+using PCShop.Models.Common;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 
 namespace PCShop.Areas.Admin.Controllers
@@ -12,75 +10,102 @@ namespace PCShop.Areas.Admin.Controllers
     public class SystemSettingsController : Controller
     {
         private ApplicationDbContext _dbContext = new ApplicationDbContext();
-        // GET: Admin/SystemSettings
-        public ActionResult Index()
-        {
-            var settings = _dbContext.systemSettings.ToList();
-            return View(settings);
-        }
 
-        public ActionResult Add()
+        private static readonly string[] OrderedGroups =
         {
-            return View();
+            "Thông tin chung",
+            "Liên hệ",
+            "Mạng xã hội",
+            "Giao diện",
+            "SEO",
+            "Khác"
+        };
+
+        [RequirePermission("Setting.View", "Setting.Manage")]
+        public ActionResult Index(string group, string txtSearch)
+        {
+            var allSettings = _dbContext.systemSettings
+                .Where(s => s.settingGroup == null || s.settingGroup != "Thanh toán")
+                .OrderBy(s => s.id)
+                .ToList();
+
+            var groupCounts = allSettings
+                .GroupBy(s => string.IsNullOrWhiteSpace(s.settingGroup) ? "Thông tin chung" : s.settingGroup)
+                .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
+
+            var orderedGroupList = OrderedGroups
+                .Where(g => groupCounts.ContainsKey(g))
+                .Concat(groupCounts.Keys.Where(k => !OrderedGroups.Contains(k, StringComparer.OrdinalIgnoreCase)).OrderBy(k => k))
+                .ToList();
+
+            var filtered = allSettings.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(group))
+            {
+                filtered = filtered.Where(s =>
+                {
+                    var grp = string.IsNullOrWhiteSpace(s.settingGroup) ? "Thông tin chung" : s.settingGroup;
+                    return string.Equals(grp, group, StringComparison.OrdinalIgnoreCase);
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(txtSearch))
+            {
+                var keyword = txtSearch.Trim().ToLower();
+                filtered = filtered.Where(s =>
+                    (s.settingName != null && s.settingName.ToLower().Contains(keyword)) ||
+                    (s.settingKey != null && s.settingKey.ToLower().Contains(keyword)) ||
+                    (s.settingValue != null && s.settingValue.ToLower().Contains(keyword)) ||
+                    (s.settingDescription != null && s.settingDescription.ToLower().Contains(keyword)) ||
+                    (s.settingGroup != null && s.settingGroup.ToLower().Contains(keyword)));
+            }
+
+            ViewBag.CurrentGroup = group;
+            ViewBag.CurrentSearch = txtSearch;
+            ViewBag.Groups = orderedGroupList;
+            ViewBag.GroupCounts = groupCounts;
+            ViewBag.TotalCount = allSettings.Count;
+
+            return View(filtered.ToList());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Add(SystemSettings systemSettings)
+        [RequirePermission("Setting.Manage")]
+        public ActionResult SaveAll(string returnGroup, string returnSearch)
         {
-            if (ModelState.IsValid)
+            var allSettings = _dbContext.systemSettings.ToList();
+            var updatedKeys = new List<string>();
+
+            foreach (var item in allSettings)
             {
-                if (systemSettings != null)
+                var fieldName = "setting_" + item.id;
+                if (Request.Form.AllKeys.Contains(fieldName))
                 {
-                    _dbContext.systemSettings.Add(new SystemSettings
+                    var rawValue = Request.Form[fieldName] ?? string.Empty;
+                    var newValue = string.Equals(item.settingType, "bool", StringComparison.OrdinalIgnoreCase)
+                        ? (rawValue.IndexOf("true", StringComparison.OrdinalIgnoreCase) >= 0 ? "true" : "false")
+                        : rawValue;
+
+                    if (!string.Equals(item.settingValue ?? string.Empty, newValue, StringComparison.Ordinal))
                     {
-                        settingKey = systemSettings.settingKey,
-                        settingValue = systemSettings.settingValue,
-                        settingDescription = systemSettings.settingDescription
-                    });
-                    _dbContext.SaveChanges();
-                    return RedirectToAction("Index");
+                        item.settingValue = newValue;
+                        updatedKeys.Add(item.settingKey);
+                    }
                 }
             }
-            return View(systemSettings);
-        }
 
-        public ActionResult Edit(int id)
-        {
-            var item = _dbContext.systemSettings.Find(id);
-            return View(item);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(SystemSettings model)
-        {
-            if (ModelState.IsValid)
+            if (updatedKeys.Count > 0)
             {
-                if (model != null)
-                {
-                    var n = _dbContext.systemSettings.Where(i => i.id == model.id).FirstOrDefault();
-                    //n.settingKey = model.settingKey;
-                    n.settingValue = model.settingValue;
-                    n.settingDescription = model.settingDescription;
-                    _dbContext.SaveChanges();
-                    return RedirectToAction("Index");
-                }
-            }
-            return View(model);
-        }
-
-        [HttpPost]
-        public ActionResult Delete(int id)
-        {
-            var item = _dbContext.systemSettings.Find(id);
-            if (item != null)
-            {
-                var delete = _dbContext.systemSettings.Remove(item);
                 _dbContext.SaveChanges();
-                return Json(new { success = true });
+                foreach (var key in updatedKeys)
+                {
+                    SettingsHelper.ClearCache(key);
+                }
             }
-            return Json(new { success = false });
+
+            TempData["Success"] = "Đã lưu cấu hình hệ thống thành công.";
+            return RedirectToAction("Index", new { group = returnGroup, txtSearch = returnSearch });
         }
     }
 }

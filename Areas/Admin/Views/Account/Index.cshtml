@@ -1,107 +1,132 @@
-﻿@using Microsoft.AspNet.Identity.EntityFramework
-@model IEnumerable<PCShop.Models.ApplicationUser>
+﻿@model IEnumerable<PCShop.Models.AdminUserListItemViewModel>
+@using PCShop.Models.Common
 @{
     ViewBag.Title = "Quản lý tài khoản";
+    var antiForgeryToken = Html.AntiForgeryToken();
+    var canManage = PermissionHelper.HasPermission(User, "Account.Manage");
+    var currentSearch = ViewBag.CurrentSearch as string;
 }
 
-
-<!-- Content Header (Page header) -->
 <section class="content-header">
     <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1>Quản lý tài khoản</h1>
-            </div>
-        </div>
+        <h1>Quản lý tài khoản</h1>
     </div>
-    <!-- /.container-fluid -->
 </section>
 
-<!-- Main content -->
 <section class="content">
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Danh sách tài khoản</h3>
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success mb-3" style="border-radius: 12px; font-size: 13.5px;">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger mb-3" style="border-radius: 12px; font-size: 13.5px;">@TempData["Error"]</div>
+        }
+
+        <div class="admin-toolbar">
+            <div class="admin-toolbar-left">
+                @using (Html.BeginForm("Index", "Account", FormMethod.Get, new { @class = "d-flex align-items-center", @style = "gap: 8px;" }))
+                {
+                    <div class="admin-search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="search" name="txtSearch" value="@currentSearch" class="form-control" placeholder="Tìm tài khoản, họ tên, SĐT..." />
                     </div>
-                    <!-- /.card-header -->
-                    <div class="card-body">
-                        <div id="example1_wrapper" class="dataTables_wrapper dt-bootstrap4">
-                            <div class="row mb-2">
-                                <div class="col-sm-12 col-md-12 right">
-                                    <div class="float-sm-right">
-                                        <a type="button" href="/Admin/Account/Register" class="btn btn-primary">Thêm mới</a>
-                                        <a type="button" href="#" class="btn btn-danger" id="btnDeleteAll">Xoá tin tức đã chọn</a>
-                                        <br />
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-12">
-
-                                    <table id="example1" class="table table-bordered table-striped dataTable dtr-inline" aria-describedby="example1_info">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Tài khoản</th>
-                                                <th>Họ tên</th>
-                                                <th>Số điện thoại</th>
-                                                <th>Email</th>
-                                                <th>Thao tác</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (Model != null && Model.Any())
-                                            {
-
-                                                foreach (var item in Model)
-                                                {
-                                                    <tr>
-                                                        <td>@item.Id</td>
-                                                        <td>@item.UserName</td>
-                                                        <td>@item.FullName</td>
-                                                        <td>@item.Phone</td>
-                                                        <td>@item.Email</td>
-                                                        <td>
-                                                            <a href="/Admin/Account/Edit/@item.UserName" class="btn btn-primary">Sửa</a>
-                                                            <a href="#" data-id="@item.Id" class="btn btn-danger" id="btnDelete">Xoá</a>
-                                                        </td>
-                                                    </tr>
-                                                }
-
-                                            }
-                                            else
-                                            {
-                                                <tr>
-                                                    <td>Chưa có dữ liệu</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Tài khoản</th>
-                                                <th>Họ tên</th>
-                                                <th>Số điện thoại</th>
-                                                <th>Email</th>
-                                                <th>Thao tác</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- /.card-body -->
-                </div>
-                <!-- /.card -->
+                    <button type="submit" class="btn btn-default">Tìm</button>
+                }
             </div>
-            <!-- /.col -->
+            @if (canManage)
+            {
+                <div class="admin-toolbar-right">
+                    <a href="/Admin/Account/Register" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        <span>Thêm tài khoản</span>
+                    </a>
+                </div>
+            }
         </div>
-        <!-- /.row -->
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 56px;">#</th>
+                            <th>Tài khoản</th>
+                            <th>Nhóm quyền</th>
+                            <th>Số điện thoại</th>
+                            <th>Email</th>
+                            @if (canManage)
+                            {
+                                <th class="text-right" style="width: 110px;">Thao tác</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            var index = 1;
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="tabular-nums" style="color: var(--muted);">@index</td>
+                                    <td>
+                                        <div class="admin-item-title">@item.UserName</div>
+                                        <div class="admin-item-sub">@(string.IsNullOrWhiteSpace(item.FullName) ? "—" : item.FullName)</div>
+                                    </td>
+                                    <td>
+                                        @if (item.Roles != null && item.Roles.Any())
+                                        {
+                                            <div class="d-flex flex-wrap" style="gap: 4px;">
+                                                @foreach (var roleName in item.Roles)
+                                                {
+                                                    var badgeClass = string.Equals(roleName, "Admin", StringComparison.OrdinalIgnoreCase)
+                                                        ? "badge-clean-success"
+                                                        : "badge-clean-neutral";
+                                                    <span class="badge-clean @badgeClass">@roleName</span>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span style="color: var(--muted);">—</span>
+                                        }
+                                    </td>
+                                    <td class="tabular-nums">@(string.IsNullOrWhiteSpace(item.Phone) ? "—" : item.Phone)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(item.Email) ? "—" : item.Email)</td>
+                                    @if (canManage)
+                                    {
+                                        <td class="text-right" style="white-space: nowrap;">
+                                            <a href="@Url.Action("Edit", "Account", new { id = item.Id })" class="btn-icon" title="Sửa & gán nhóm quyền" aria-label="Sửa">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                            @using (Html.BeginForm("Delete", "Account", new { id = item.Id }, FormMethod.Post, new { @class = "d-inline", onsubmit = "return confirm('Bạn có chắc chắn muốn xoá tài khoản này?');" }))
+                                            {
+                                                @antiForgeryToken
+                                                <button type="submit" class="btn-icon btn-icon-danger" title="Xoá" aria-label="Xoá">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                                index++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon"><i class="fas fa-users"></i></div>
+                                        <div class="empty-state-title">Chưa có tài khoản nào</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <!-- /.container-fluid -->
 </section>
-<!-- /.content -->

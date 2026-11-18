@@ -1,130 +1,146 @@
-﻿using PagedList;
+using PagedList;
 using PCShop.Models;
 using PCShop.Models.Common;
 using PCShop.Models.EF;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 
 namespace PCShop.Areas.Admin.Controllers
 {
-    [Authorize(Roles = "Admin,Nhân viên")]
-
     public class NewsController : Controller
     {
         private ApplicationDbContext dbContext = new ApplicationDbContext();
 
-        // GET: Admin/News
+        [RequirePermission("News.View", "News.Manage")]
         public ActionResult Index(string txtSearch, int? page)
         {
-            int pageSize = 5;
-            if (page == null)
+            var pageSize = 10;
+            var pageIndex = page ?? 1;
+
+            IQueryable<News> query = dbContext.news.AsNoTracking().OrderByDescending(x => x.id);
+            if (!string.IsNullOrWhiteSpace(txtSearch))
             {
-                page = 1;
+                var keyword = txtSearch.Trim().ToLower();
+                query = query.Where(x => x.title.ToLower().Contains(keyword) || x.alias.ToLower().Contains(keyword));
             }
 
-            IEnumerable<News> newsList = dbContext.news.OrderByDescending(x => x.id);
-            if (!string.IsNullOrEmpty(txtSearch))
-            {
-                newsList = newsList.Where(x => x.title.ToLower().Contains(txtSearch) || x.alias.ToLower().Contains(txtSearch));
-            }
-
-            int pageIndex = page.HasValue ? Convert.ToInt32(page) : 1;
-            newsList = newsList.ToPagedList(pageIndex, pageSize);
+            var newsList = query.ToPagedList(pageIndex, pageSize);
             ViewBag._pageSize = pageSize;
-            ViewBag._page = page;
+            ViewBag._page = pageIndex;
 
             return View(newsList);
         }
 
+        [RequirePermission("News.Manage")]
         public ActionResult Add()
         {
             return View();
         }
 
+        private string CurrentUserName()
+        {
+            return User != null && User.Identity != null && !string.IsNullOrEmpty(User.Identity.Name)
+                ? User.Identity.Name
+                : "system";
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermission("News.Manage")]
         public ActionResult Add(News news)
         {
             if (ModelState.IsValid)
             {
                 news.createdDate = DateTime.Now;
-                news.createdBy = "Khánh tạo";
+                news.createdBy = CurrentUserName();
                 news.modifiedDate = DateTime.Now;
-                news.modifiedBy = "Khánh sửa";
+                news.modifiedBy = CurrentUserName();
                 news.alias = CommonHelper.FilterChar(news.title);
+                news.description = HtmlSecurityHelper.Sanitize(news.description);
+                news.detail = HtmlSecurityHelper.Sanitize(news.detail);
                 dbContext.news.Add(news);
                 dbContext.SaveChanges();
                 return RedirectToAction("Index");
-
             }
             return View(news);
         }
 
+        [RequirePermission("News.Manage")]
         public ActionResult Edit(int id)
         {
             var item = dbContext.news.Find(id);
+            if (item == null)
+            {
+                return HttpNotFound();
+            }
             return View(item);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermission("News.Manage")]
         public ActionResult Edit(News news)
         {
             if (ModelState.IsValid)
             {
-                news.modifiedBy = "Khánh sửa";
+                var existing = dbContext.news.FirstOrDefault(i => i.id == news.id);
+                if (existing == null)
+                {
+                    return HttpNotFound();
+                }
 
-                News n = dbContext.news.Where(i => i.id == news.id).FirstOrDefault();
-                n.title = news.title;
-                n.description = news.description;
-                n.detail = news.detail;
-                n.image = news.image;
-                n.modifiedDate = DateTime.Now;
-                n.modifiedBy = news.modifiedBy;
-                n.alias = CommonHelper.FilterChar(news.title);
+                existing.title = news.title;
+                existing.detail = HtmlSecurityHelper.Sanitize(news.detail);
+                existing.description = HtmlSecurityHelper.Sanitize(news.description);
+                existing.image = news.image;
+                existing.modifiedDate = DateTime.Now;
+                existing.modifiedBy = CurrentUserName();
+                existing.alias = CommonHelper.FilterChar(news.title);
                 dbContext.SaveChanges();
                 return RedirectToAction("Index");
-
             }
             return View(news);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryTokenAjax]
+        [RequirePermission("News.Manage")]
         public ActionResult Delete(int id)
         {
             var item = dbContext.news.Find(id);
             if (item != null)
             {
-                var delete = dbContext.news.Remove(item);
+                dbContext.news.Remove(item);
                 dbContext.SaveChanges();
                 return Json(new { success = true });
             }
             return Json(new { success = false });
-
         }
 
         [HttpPost]
+        [ValidateAntiForgeryTokenAjax]
+        [RequirePermission("News.Manage")]
         public ActionResult DeleteAll(string ids)
         {
             if (!string.IsNullOrEmpty(ids))
             {
-                var id = ids.Split(',');
-                if (id != null && id.Any())
+                foreach (var raw in ids.Split(','))
                 {
-                    foreach (var item in id)
+                    int id;
+                    if (!int.TryParse(raw, out id))
                     {
-                        var res = dbContext.news.Find(Convert.ToInt32(item));
-                        if (res != null)
-                        {
-                            dbContext.news.Remove(res);
-                            dbContext.SaveChanges();
-                        }
+                        continue;
                     }
-                    return Json(new { success = true });
+
+                    var res = dbContext.news.Find(id);
+                    if (res != null)
+                    {
+                        dbContext.news.Remove(res);
+                    }
                 }
+                dbContext.SaveChanges();
+                return Json(new { success = true });
             }
             return Json(new { success = false });
         }

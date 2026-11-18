@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -12,6 +12,13 @@ namespace PCShop
         public static void RegisterRoutes(RouteCollection routes)
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+
+            routes.MapRoute(
+                name: "Health",
+                url: "health",
+                defaults: new { controller = "Home", action = "Health" },
+                namespaces: new[] { "PCShop.Controllers" }
+            );
 
             routes.MapRoute(
                 name: "Contact",

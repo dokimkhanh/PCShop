@@ -31,12 +31,25 @@
     <link href="~/Content/PagedList.css" rel="stylesheet" />
 </head>
 <body>
+    @Html.AntiForgeryToken()
 
     <div>
         @RenderBody();
     </div>
 
     <script src="~/Content/client/plugins/jquery/jquery.min.js"></script>
+    <script>
+        var afToken = $('input[name="__RequestVerificationToken"]').first().val();
+        if (afToken) {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    if (settings.type && settings.type.toUpperCase() === 'POST') {
+                        xhr.setRequestHeader('__RequestVerificationToken', afToken);
+                    }
+                }
+            });
+        }
+    </script>
     <!-- Bootstrap 4 -->
     <script src="~/Content/client/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
     <!-- bs-custom-file-input -->
@@ -66,7 +79,6 @@
     <!-- dropzonejs -->
     <script src="~/Content/client/plugins/dropzone/min/dropzone.min.js"></script>
     <!-- AdminLTE App -->
-    <script src="~/Content/ckfinder/ckfinder.js"></script>
     <script src="~/Content/ckeditor/ckeditor.js"></script>
     @RenderSection("scripts", required: false)
 </body>

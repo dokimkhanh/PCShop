@@ -1,56 +1,102 @@
-﻿@using Microsoft.AspNet.Identity.EntityFramework
-@model IdentityRole
+﻿@model PCShop.Models.RoleFormViewModel
 @{
-    ViewBag.Title = "Thêm quyền";
-
-
+    ViewBag.Title = "Thêm nhóm quyền";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var groupedPermissions = (Model.AllPermissions ?? new List<PCShop.Models.EF.Permission>())
+        .GroupBy(p => p.Module)
+        .ToList();
+    var selectedSet = new HashSet<int>(Model.SelectedPermissionIds ?? new List<int>());
 }
 
-
-<!-- Content Header (Page header) -->
 <section class="content-header">
     <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1>Quản lý quyền</h1>
-            </div>
+        <div class="d-flex align-items-center justify-content-between">
+            <h1>Thêm nhóm quyền mới</h1>
+            <a href="@Url.Action("Index", "Role")" class="btn btn-default btn-sm">
+                <i class="fas fa-arrow-left"></i>
+                <span>Quay lại</span>
+            </a>
         </div>
     </div>
-    <!-- /.container-fluid -->
 </section>
 
-<!-- Main content -->
 <section class="content">
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Thêm quyền mới</h3>
+        <div class="card">
+            @using (Html.BeginForm("Add", "Role", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="card-body">
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger py-2 px-3 mb-3", @style = "border-radius: 10px; font-size: 13px;" })
+
+                    <div class="form-group" style="max-width: 480px;">
+                        <label for="Name">Tên nhóm quyền <span class="text-danger">*</span></label>
+                        @Html.TextBoxFor(x => x.Name, new { @class = "form-control", @placeholder = "Ví dụ: Nhân viên kho, Biên tập tin tức" })
+                        @Html.ValidationMessageFor(x => x.Name, null, new { @class = "text-danger small" })
                     </div>
-                    <!-- /.card-header -->
-                    <div class="card-body">
-                        @using (Html.BeginForm("Add", "Role", FormMethod.Post))
-                        {
-                            @Html.ValidationSummary(false)
-                            @Html.AntiForgeryToken()
-                            <div class="form-group">
-                                <label>Tên quyền</label>
-                                @Html.TextBoxFor(x => x.Name, new { @class = "form-control" })
+
+                    <div class="pt-3 mt-4" style="border-top: 1px solid var(--border);">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3" style="gap: 8px;">
+                            <div>
+                                <label class="mb-0">Cấp quyền cho nhóm này</label>
+                                <div style="font-size: 12.5px; color: var(--muted);">Chọn các chức năng quản trị mà nhóm quyền này được phép thao tác</div>
                             </div>
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-success">Thêm mới</button>
-                            </div>
-                        }
+                            <button type="button" id="btnToggleAllPerms" class="btn btn-default btn-sm">Chọn tất cả</button>
+                        </div>
+
+                        <div class="row">
+                            @foreach (var grp in groupedPermissions)
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <div style="border: 1px solid var(--border-strong); border-radius: 12px; padding: 14px 16px; height: 100%; background: var(--surface);">
+                                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2" style="border-bottom: 1px solid var(--border);">
+                                            <strong style="font-size: 13.5px;">@grp.Key</strong>
+                                            <button type="button" class="btn-module-toggle" style="border: 0; background: transparent; color: var(--primary); font-size: 12px; font-weight: 500; cursor: pointer;">Chọn nhóm</button>
+                                        </div>
+                                        <div class="module-perm-list">
+                                            @foreach (var perm in grp)
+                                            {
+                                                var isChecked = selectedSet.Contains(perm.Id);
+                                                <div class="custom-control custom-checkbox mb-2">
+                                                    <input type="checkbox" class="custom-control-input perm-checkbox" id="perm_@perm.Id" name="SelectedPermissionIds" value="@perm.Id" @(isChecked ? "checked" : "") />
+                                                    <label class="custom-control-label" for="perm_@perm.Id" style="font-weight: 400; cursor: pointer;">
+                                                        <span style="font-weight: 500; color: var(--foreground);">@perm.Name</span>
+                                                        <span class="d-block" style="font-size: 11.5px; color: var(--muted);">@perm.Code @(string.IsNullOrWhiteSpace(perm.Description) ? "" : "· " + perm.Description)</span>
+                                                    </label>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
                     </div>
-                    <!-- /.card-body -->
                 </div>
-                <!-- /.card -->
-            </div>
-            <!-- /.col -->
+
+                <div class="card-footer d-flex align-items-center justify-content-end" style="gap: 8px;">
+                    <a href="@Url.Action("Index", "Role")" class="btn btn-default">Huỷ</a>
+                    <button type="submit" class="btn btn-primary">Lưu nhóm quyền</button>
+                </div>
+            }
         </div>
-        <!-- /.row -->
     </div>
-    <!-- /.container-fluid -->
 </section>
-<!-- /.content -->
+
+@section scripts {
+    <script>
+        $(function () {
+            $('#btnToggleAllPerms').on('click', function () {
+                var all = $('.perm-checkbox');
+                var allChecked = all.length > 0 && all.filter(':checked').length === all.length;
+                all.prop('checked', !allChecked);
+                $(this).text(allChecked ? 'Chọn tất cả' : 'Bỏ chọn tất cả');
+            });
+
+            $('.btn-module-toggle').on('click', function () {
+                var boxes = $(this).closest('div').next('.module-perm-list').find('.perm-checkbox');
+                var allChecked = boxes.length > 0 && boxes.filter(':checked').length === boxes.length;
+                boxes.prop('checked', !allChecked);
+            });
+        });
+    </script>
+}

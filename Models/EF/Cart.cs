@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -15,14 +15,21 @@ namespace PCShop.Models.EF
 
         public void AddItem(CartItems item, int quantity)
         {
+            if (item == null || quantity < 1)
+            {
+                return;
+            }
+
             var checkExits = listCartItem.FirstOrDefault(x => x.Id == item.Id);
             if (checkExits != null)
             {
                 checkExits.quantity += quantity;
-                checkExits.totalPrice += checkExits.price * checkExits.quantity;
+                checkExits.totalPrice = checkExits.price * checkExits.quantity;
             }
             else
             {
+                item.quantity = quantity;
+                item.totalPrice = item.price * item.quantity;
                 listCartItem.Add(item);
             }
         }
@@ -38,6 +45,11 @@ namespace PCShop.Models.EF
 
         public void UpdateQuantity(int id, int new_quantity)
         {
+            if (new_quantity < 1)
+            {
+                return;
+            }
+
             var checkExits = listCartItem.SingleOrDefault(x => x.Id == id);
             if (checkExits != null)
             {

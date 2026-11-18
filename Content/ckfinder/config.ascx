@@ -8,16 +8,9 @@
 	 */
 	public override bool CheckAuthentication()
 	{
-		// WARNING : DO NOT simply return "true". By doing so, you are allowing
-		// "anyone" to upload and list the files in your server. You must implement
-		// some kind of session validation here. Even something very simple as...
-		//
-		//		return ( Session[ "IsAuthorized" ] != null && (bool)Session[ "IsAuthorized" ] == true );
-		//
-		// ... where Session[ "IsAuthorized" ] is set to "true" as soon as the
-		// user logs on your system.
-
-		return true;
+		var user = HttpContext.Current.User;
+		return user != null && user.Identity != null && user.Identity.IsAuthenticated
+			&& (user.IsInRole("Admin") || user.IsInRole("Nhân viên"));
 	}
 
 	/**
@@ -153,12 +146,6 @@
 		// resource type names separated by a comma). If left empty, all types
 		// are loaded.
 
-		// ==============================================================================
-		// ATTENTION: Flash files with `swf' extension, just like HTML files, can be used
-		// to execute JavaScript code and to e.g. perform an XSS attack. Grant permission
-		// to upload `.swf` files only if you understand and can accept this risk.
-		// ==============================================================================
-
 		DefaultResourceTypes = "";
 
 		ResourceType type;
@@ -166,22 +153,15 @@
 		type = ResourceType.Add( "Files" );
 		type.Url = BaseUrl + "files/";
 		type.Dir = BaseDir == "" ? "" : BaseDir + "files/";
-		type.MaxSize = 0;
-		type.AllowedExtensions = new string[] { "7z", "aiff", "asf", "avi", "bmp", "csv", "doc", "docx", "fla", "flv", "gif", "gz", "gzip", "jpeg", "jpg", "mid", "mov", "mp3", "mp4", "mpc", "mpeg", "mpg", "ods", "odt", "pdf", "png", "ppt", "pptx", "pxd", "qt", "ram", "rar", "rm", "rmi", "rmvb", "rtf", "sdc", "sitd", "swf", "sxc", "sxw", "tar", "tgz", "tif", "tiff", "txt", "vsd", "wav", "wma", "wmv", "xls", "xlsx", "zip" };
+		type.MaxSize = 5 * 1024 * 1024;
+		type.AllowedExtensions = new string[] { "7z", "aiff", "asf", "avi", "bmp", "csv", "doc", "docx", "fla", "gif", "gz", "gzip", "jpeg", "jpg", "mid", "mov", "mp3", "mp4", "mpc", "mpeg", "mpg", "ods", "odt", "pdf", "png", "ppt", "pptx", "pxd", "qt", "ram", "rar", "rm", "rmi", "rmvb", "rtf", "sdc", "sitd", "sxc", "sxw", "tar", "tgz", "tif", "tiff", "txt", "vsd", "wav", "wma", "wmv", "xls", "xlsx", "zip" };
 		type.DeniedExtensions = new string[] { };
 
 		type = ResourceType.Add( "Images" );
 		type.Url = BaseUrl + "images/";
 		type.Dir = BaseDir == "" ? "" : BaseDir + "images/";
-		type.MaxSize = 0;
+		type.MaxSize = 5 * 1024 * 1024;
 		type.AllowedExtensions = new string[] { "bmp", "gif", "jpeg", "jpg", "png" };
-		type.DeniedExtensions = new string[] { };
-
-		type = ResourceType.Add( "Flash" );
-		type.Url = BaseUrl + "flash/";
-		type.Dir = BaseDir == "" ? "" : BaseDir + "flash/";
-		type.MaxSize = 0;
-		type.AllowedExtensions = new string[] { "swf", "flv" };
 		type.DeniedExtensions = new string[] { };
 	}
 

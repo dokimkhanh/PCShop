@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace PCShop.Models
@@ -124,5 +124,86 @@ namespace PCShop.Models
         [EmailAddress]
         [Display(Name = "Email")]
         public string Email { get; set; }
+    }
+
+    public class AdminRegisterViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập.")]
+        [StringLength(50, ErrorMessage = "{0} phải từ {2} đến {1} ký tự.", MinimumLength = 4)]
+        [Display(Name = "Tên đăng nhập")]
+        public string UserName { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập họ tên.")]
+        [Display(Name = "Họ và tên")]
+        public string FullName { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập email.")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        [Display(Name = "Email")]
+        public string Email { get; set; }
+
+        [Display(Name = "Số điện thoại")]
+        public string Phone { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
+        [StringLength(100, ErrorMessage = "Mật khẩu tối thiểu {2} ký tự.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Mật khẩu")]
+        public string Password { get; set; }
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Nhập lại mật khẩu")]
+        [Compare("Password", ErrorMessage = "Nhập lại mật khẩu không đúng.")]
+        public string ConfirmPassword { get; set; }
+
+        public List<string> SelectedRoles { get; set; }
+        public List<string> AvailableRoles { get; set; }
+    }
+
+    public class EditAccountViewModel
+    {
+        public string Id { get; set; }
+
+        [Display(Name = "Tên đăng nhập")]
+        public string UserName { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập họ tên.")]
+        [Display(Name = "Họ và tên")]
+        public string FullName { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập email.")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        [Display(Name = "Email")]
+        public string Email { get; set; }
+
+        [Display(Name = "Số điện thoại")]
+        public string Phone { get; set; }
+
+        public List<string> SelectedRoles { get; set; }
+        public List<string> AvailableRoles { get; set; }
+
+        [StringLength(100, ErrorMessage = "Mật khẩu mới tối thiểu 6 ký tự.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Mật khẩu mới")]
+        public string NewPassword { get; set; }
+    }
+
+    public class UserProfileViewModel
+    {
+        public string UserName { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập họ tên.")]
+        [Display(Name = "Họ và tên")]
+        public string FullName { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập email.")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        [Display(Name = "Email")]
+        public string Email { get; set; }
+
+        [Display(Name = "Số điện thoại")]
+        public string Phone { get; set; }
+
+        public List<PCShop.Models.EF.Order> Orders { get; set; }
     }
 }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bản mẫu cho connections.config (file thật KHÔNG commit lên git).
+
+  Cách dùng:
+    1. Copy file này thành connections.config (cùng thư mục với Web.config)
+    2. Điền thông tin CSDL thật vào connectionString
+    3. Khi deploy phải copy connections.config lên server, nếu thiếu web sẽ lỗi 500
+-->
+<connectionStrings>
+  <add name="DefaultConnection"
+       connectionString="Data Source=YOUR_SERVER;Initial Catalog=YOUR_DATABASE;User Id=YOUR_USER;Password=YOUR_PASSWORD;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+       providerName="System.Data.SqlClient" />
+</connectionStrings>
