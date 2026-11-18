@@ -171,17 +171,17 @@ namespace PCShop.Controllers
 
             var comments = dbContext.productComments
                 .AsNoTracking()
-                .Where(c => c.ProductId == id && (!c.IsDeleted || c.ParentId == null))
+                .Where(c => c.ProductId == id)
                 .OrderByDescending(c => c.CreatedDate)
                 .ToList();
 
-            var activeReplyParents = new System.Collections.Generic.HashSet<int>(
+            var replyParents = new System.Collections.Generic.HashSet<int>(
                 comments
-                    .Where(c => c.ParentId.HasValue && !c.IsDeleted)
+                    .Where(c => c.ParentId.HasValue)
                     .Select(c => c.ParentId.Value));
 
             comments = comments
-                .Where(c => !c.IsDeleted || activeReplyParents.Contains(c.Id))
+                .Where(c => c.ParentId.HasValue || !c.IsDeleted || replyParents.Contains(c.Id))
                 .ToList();
 
             ViewBag.Comments = comments;
@@ -229,6 +229,10 @@ namespace PCShop.Controllers
                 if (parentComment == null)
                 {
                     return Json(new { success = false, message = "Bình luận gốc không tồn tại." });
+                }
+                if (parentComment.IsDeleted)
+                {
+                    return Json(new { success = false, message = "Không thể trả lời bình luận đã bị xoá." });
                 }
                 var rootId = parentComment.ParentId.HasValue ? parentComment.ParentId.Value : parentComment.Id;
                 var rootComment = rootId == parentComment.Id
@@ -321,8 +325,8 @@ namespace PCShop.Controllers
 
             if (!comment.ParentId.HasValue)
             {
-                var hasActiveReplies = dbContext.productComments.Any(c => c.ParentId == id && !c.IsDeleted);
-                if (hasActiveReplies && !comment.IsDeleted)
+                var hasReplies = dbContext.productComments.Any(c => c.ParentId == id);
+                if (hasReplies && !comment.IsDeleted)
                 {
                     comment.IsDeleted = true;
                     comment.Content = "Bình luận đã bị xoá";
@@ -331,6 +335,7 @@ namespace PCShop.Controllers
                     {
                         success = true,
                         softDeleted = true,
+                        isReply = false,
                         removedCount = 1,
                         createdDate = comment.CreatedDate.ToString("dd/MM/yyyy HH:mm")
                     });
@@ -344,7 +349,22 @@ namespace PCShop.Controllers
                 }
                 dbContext.productComments.Remove(comment);
                 dbContext.SaveChanges();
-                return Json(new { success = true, softDeleted = false, removedCount = removedCount });
+                return Json(new { success = true, softDeleted = false, isReply = false, removedCount = removedCount });
+            }
+
+            if (!comment.IsDeleted)
+            {
+                comment.IsDeleted = true;
+                comment.Content = "Bình luận đã bị xoá";
+                dbContext.SaveChanges();
+                return Json(new
+                {
+                    success = true,
+                    softDeleted = true,
+                    isReply = true,
+                    removedCount = 1,
+                    createdDate = comment.CreatedDate.ToString("dd/MM/yyyy HH:mm")
+                });
             }
 
             var parentId = comment.ParentId.Value;
@@ -355,7 +375,7 @@ namespace PCShop.Controllers
             var parent = dbContext.productComments.Find(parentId);
             if (parent != null && parent.IsDeleted)
             {
-                var remainingReplies = dbContext.productComments.Any(c => c.ParentId == parentId && !c.IsDeleted);
+                var remainingReplies = dbContext.productComments.Any(c => c.ParentId == parentId);
                 if (!remainingReplies)
                 {
                     dbContext.productComments.Remove(parent);
@@ -368,7 +388,8 @@ namespace PCShop.Controllers
             {
                 success = true,
                 softDeleted = false,
-                removedCount = 1,
+                isReply = true,
+                removedCount = 0,
                 removedParentId = removedParentId
             });
         }

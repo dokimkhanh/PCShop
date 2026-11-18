@@ -1,4 +1,4 @@
-﻿@model PCShop.Models.EF.Product
+@model PCShop.Models.EF.Product
 @using PCShop.Models.EF
 @{
     ViewBag.Title = Model.title;
@@ -14,7 +14,7 @@
     var allComments = ViewBag.Comments as System.Collections.Generic.List<ProductComment> ?? new System.Collections.Generic.List<ProductComment>();
     var activeCommentCount = allComments.Count(c => !c.IsDeleted);
     var rootComments = allComments.Where(c => !c.ParentId.HasValue).OrderByDescending(c => c.CreatedDate).ToList();
-    var repliesLookup = allComments.Where(c => c.ParentId.HasValue && !c.IsDeleted)
+    var repliesLookup = allComments.Where(c => c.ParentId.HasValue)
         .GroupBy(c => c.ParentId.Value)
         .ToDictionary(g => g.Key, g => g.OrderBy(r => r.CreatedDate).ToList());
     var canModerate = ViewBag.CanModerateComments != null && (bool)ViewBag.CanModerateComments;
@@ -264,33 +264,46 @@
                                         ? reply.AuthorName.Trim().Substring(0, 1).ToUpperInvariant()
                                         : "K";
                                     <div class="sf-comment-reply-item" id="comment_@reply.Id">
-                                        <div class="sf-comment-avatar @(reply.IsAdminReply ? "is-admin" : "")">@rInitial</div>
-                                        <div class="flex-grow-1" style="min-width: 0;">
-                                            <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 8px;">
+                                        @if (reply.IsDeleted)
+                                        {
+                                            <div class="sf-comment-avatar"><i class="fa fa-ban" aria-hidden="true" style="font-size: 12px; color: var(--sf-muted);"></i></div>
+                                            <div class="flex-grow-1" style="min-width: 0;">
                                                 <div class="sf-comment-meta">
-                                                    <span class="sf-comment-author">@reply.AuthorName</span>
-                                                    @if (reply.IsAdminReply)
-                                                    {
-                                                        <span class="sf-admin-badge">Quản trị viên</span>
-                                                    }
+                                                    <span style="font-size: 13.5px; color: var(--sf-muted); font-style: italic;">Bình luận đã bị xoá</span>
                                                     <span class="sf-comment-time" title="@reply.CreatedDate.ToString("dd/MM/yyyy HH:mm")">@reply.CreatedDate.ToString("dd/MM/yyyy HH:mm")</span>
                                                 </div>
-                                                @if (canModerate)
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="sf-comment-avatar @(reply.IsAdminReply ? "is-admin" : "")">@rInitial</div>
+                                            <div class="flex-grow-1" style="min-width: 0;">
+                                                <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 8px;">
+                                                    <div class="sf-comment-meta">
+                                                        <span class="sf-comment-author">@reply.AuthorName</span>
+                                                        @if (reply.IsAdminReply)
+                                                        {
+                                                            <span class="sf-admin-badge">Quản trị viên</span>
+                                                        }
+                                                        <span class="sf-comment-time" title="@reply.CreatedDate.ToString("dd/MM/yyyy HH:mm")">@reply.CreatedDate.ToString("dd/MM/yyyy HH:mm")</span>
+                                                    </div>
+                                                    @if (canModerate)
+                                                    {
+                                                        <button type="button" class="sf-comment-danger-btn btnDeleteComment" data-id="@reply.Id">Xoá</button>
+                                                    }
+                                                </div>
+                                                <div class="sf-comment-body">@reply.Content</div>
+                                                @if (!comment.IsDeleted)
                                                 {
-                                                    <button type="button" class="sf-comment-danger-btn btnDeleteComment" data-id="@reply.Id">Xoá</button>
+                                                    <div class="sf-comment-actions">
+                                                        <button type="button" class="sf-comment-ghost-btn btnToggleReply" data-parent="@comment.Id" data-mention="@reply.AuthorName">
+                                                            <i class="fa fa-reply" aria-hidden="true"></i>
+                                                            <span>Trả lời</span>
+                                                        </button>
+                                                    </div>
                                                 }
                                             </div>
-                                            <div class="sf-comment-body">@reply.Content</div>
-                                            @if (!comment.IsDeleted)
-                                            {
-                                                <div class="sf-comment-actions">
-                                                    <button type="button" class="sf-comment-ghost-btn btnToggleReply" data-parent="@comment.Id" data-mention="@reply.AuthorName">
-                                                        <i class="fa fa-reply" aria-hidden="true"></i>
-                                                        <span>Trả lời</span>
-                                                    </button>
-                                                </div>
-                                            }
-                                        </div>
+                                        }
                                     </div>
                                 }
                             </div>
@@ -670,8 +683,7 @@
                         if (res && res.success) {
                             if (res.softDeleted) {
                                 var $item = $('#comment_' + id);
-                                var $deletedRow = $('<div class="sf-comment-row"></div>');
-                                $deletedRow.append('<div class="sf-comment-avatar"><i class="fa fa-ban" aria-hidden="true" style="font-size: 12px; color: var(--sf-muted);"></i></div>');
+                                var $avatar = $('<div class="sf-comment-avatar"><i class="fa fa-ban" aria-hidden="true" style="font-size: 12px; color: var(--sf-muted);"></i></div>');
                                 var $body = $('<div class="flex-grow-1" style="min-width: 0;"></div>');
                                 var $meta = $('<div class="sf-comment-meta"></div>');
                                 $meta.append('<span style="font-size: 13.5px; color: var(--sf-muted); font-style: italic;">Bình luận đã bị xoá</span>');
@@ -679,10 +691,15 @@
                                     $meta.append($('<span class="sf-comment-time"></span>').text(res.createdDate));
                                 }
                                 $body.append($meta);
-                                $deletedRow.append($body);
-                                $item.children('.sf-comment-row').replaceWith($deletedRow);
-                                $item.find('#reply_slot_' + id).empty();
-                                $item.find('.btnToggleReply').remove();
+                                if (res.isReply) {
+                                    $item.empty().append($avatar).append($body);
+                                } else {
+                                    var $deletedRow = $('<div class="sf-comment-row"></div>');
+                                    $deletedRow.append($avatar).append($body);
+                                    $item.children('.sf-comment-row').replaceWith($deletedRow);
+                                    $item.find('#reply_slot_' + id).empty();
+                                    $item.find('.btnToggleReply').remove();
+                                }
                             } else {
                                 $('#comment_' + id).remove();
                                 if (res.removedParentId) {

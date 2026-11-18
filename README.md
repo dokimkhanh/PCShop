@@ -57,32 +57,47 @@ cd PCShop
 
 ### 2️⃣ Cấu hình CSDL
 
-1. Mở **SQL Server Management Studio (SSMS)**
-2. Tạo database rỗng tên **PCShop**
-3. Tạo file `connections.config` từ file mẫu rồi điền chuỗi kết nối (file thật **không** commit lên git):
+Chọn **1 trong 2 cách** dưới đây để khởi tạo database **PCShop** trong **SQL Server Management Studio (SSMS)**:
 
-    ```bash
-    copy connections.config.example connections.config
-    ```
+#### Cách A — Restore bản mẫu có sẵn dữ liệu (`DB/PCShop.bak`, khuyên dùng)
 
-    ```xml
-    <connectionStrings>
-      <add name="DefaultConnection"
-           connectionString="Data Source=DESKTOP-TENMAY\SQLEXPRESS;Initial Catalog=PCShop;Integrated Security=True"
-           providerName="System.Data.SqlClient" />
-    </connectionStrings>
-    ```
+Phù hợp nếu muốn chạy ngay với đầy đủ dữ liệu mẫu (**35 danh mục cha–con**, **64 sản phẩm** kèm ảnh, **10 bài tin tức**, **banner trang chủ**, **bộ phân quyền** và **cấu hình cửa hàng** — đã làm sạch đơn hàng, bình luận và thông tin cá nhân):
 
-    > `Web.config` khai báo `<connectionStrings configSource="connections.config" />`.
-    > Thiếu file này web sẽ báo lỗi 500 khi khởi động — nhớ copy lên cả server khi deploy.
+1. Mở **SSMS** → chuột phải vào **Databases** → chọn **Restore Database...**
+2. Ở mục **Source**, chọn **Device** → bấm nút `...` → **Add** → chọn file `DB/PCShop.bak` → bấm **OK**
+3. Kiểm tra tên đích **Database** là `PCShop` → chuyển sang tab **Files** (nếu cần đổi thư mục lưu `.mdf/.ldf`, tích **Relocate all files to folder**) → bấm **OK**
 
-    > Có thể tạo bảng bằng script `DB/PCShop.sql` hoặc dùng lệnh `Update-Database` bên dưới.
+> File `DB/PCShop.bak` được đóng gói ở chuẩn **SQL Server 2014 (12.0)** nên restore được trên **SQL Server 2014, 2016, 2017, 2019, 2022 và 2025**. Sau khi restore xong **không cần** chạy `DB/PCShop.sql` hay `Update-Database`.
 
-4. Mở **Package Manager Console** trong Visual Studio và chạy:
+#### Cách B — Tạo CSDL sạch bằng script DDL (`DB/PCShop.sql`) hoặc Migration
+
+Phù hợp nếu muốn tự nhập dữ liệu từ đầu hoặc đang dùng phiên bản SQL Server khác:
+
+- **Dùng script DDL:** Mở file `DB/PCShop.sql` trong SSMS và nhấn **Execute (F5)** để tạo sẵn database `PCShop`, đầy đủ bảng, phân quyền, 5 danh mục mẫu và tài khoản `admin`.
+- **Hoặc dùng EF Migration:** Tạo database rỗng tên `PCShop`, hoàn tất bước cấu hình `connections.config` bên dưới, sau đó mở **Package Manager Console** trong Visual Studio và chạy:
 
     ```powershell
     Update-Database
     ```
+
+#### Kết nối CSDL với ứng dụng (`connections.config`)
+
+Tạo file `connections.config` từ file mẫu rồi điền chuỗi kết nối (file thật **không** commit lên git):
+
+```bash
+copy connections.config.example connections.config
+```
+
+```xml
+<connectionStrings>
+  <add name="DefaultConnection"
+       connectionString="Data Source=DESKTOP-TENMAY\SQLEXPRESS;Initial Catalog=PCShop;Integrated Security=True"
+       providerName="System.Data.SqlClient" />
+</connectionStrings>
+```
+
+> `Web.config` khai báo `<connectionStrings configSource="connections.config" />`.
+> Thiếu file này web sẽ báo lỗi 500 khi khởi động — nhớ copy lên cả server khi deploy.
 
 ### 3️⃣ Cấu hình email (Brevo)
 

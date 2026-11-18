@@ -1,4 +1,4 @@
-﻿@model PagedList<PCShop.Areas.Admin.Controllers.CommentThreadViewModel>
+@model PagedList<PCShop.Areas.Admin.Controllers.CommentThreadViewModel>
 @using PagedList
 @using PagedList.Mvc
 @using PCShop.Models.Common
@@ -143,10 +143,17 @@
                                                         </div>
                                                         @if (canManage)
                                                         {
-                                                            <button type="button" class="btn btn-link btn-sm p-0 text-danger btnDeleteReply" data-id="@r.Id" style="font-size: 11.5px;">Xoá</button>
+                                                            <button type="button" class="btn btn-link btn-sm p-0 text-danger btnDeleteReply" data-id="@r.Id" data-deleted="@(r.IsDeleted ? "1" : "0")" style="font-size: 11.5px;">@(r.IsDeleted ? "Xoá vĩnh viễn" : "Xoá")</button>
                                                         }
                                                     </div>
-                                                    <div style="font-size: 13px; white-space: pre-line; word-break: break-word;">@r.Content</div>
+                                                    @if (r.IsDeleted)
+                                                    {
+                                                        <div id="reply_content_@r.Id" style="font-size: 13px; color: var(--muted); font-style: italic;">Bình luận đã bị xoá</div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div id="reply_content_@r.Id" style="font-size: 13px; white-space: pre-line; word-break: break-word;">@r.Content</div>
+                                                    }
                                                 </div>
                                             }
                                         </div>
@@ -287,9 +294,9 @@
                             $left.append($('<span class="badge-clean badge-clean-danger ml-1" style="font-size: 10.5px;">Quản trị viên</span>'));
                             $left.append($('<span class="tabular-nums ml-2" style="color: var(--muted); font-size: 11.5px;"></span>').text(r.createdDate));
                             $top.append($left);
-                            $top.append($('<button type="button" class="btn btn-link btn-sm p-0 text-danger btnDeleteReply" style="font-size: 11.5px;">Xoá</button>').attr('data-id', r.id));
+                            $top.append($('<button type="button" class="btn btn-link btn-sm p-0 text-danger btnDeleteReply" data-deleted="0" style="font-size: 11.5px;">Xoá</button>').attr('data-id', r.id));
                             $card.append($top);
-                            $card.append($('<div style="font-size: 13px; white-space: pre-line; word-break: break-word;"></div>').text(r.content));
+                            $card.append($('<div style="font-size: 13px; white-space: pre-line; word-break: break-word;"></div>').attr('id', 'reply_content_' + r.id).text(r.content));
 
                             $('#admin_replies_' + id).append($card).css('display', 'flex');
                             $('#status_badge_' + id).removeClass('badge-clean-warning').addClass('badge-clean-success').text('Đã phản hồi');
@@ -347,19 +354,32 @@
             });
 
             $('body').on('click', '.btnDeleteReply', function () {
-                var id = $(this).data('id');
-                if (confirm('Xoá phản hồi này?')) {
+                var $btn = $(this);
+                var id = $btn.data('id');
+                var isAlreadyDeleted = $btn.attr('data-deleted') === '1';
+                var promptMsg = isAlreadyDeleted
+                    ? 'Xoá vĩnh viễn phản hồi này?'
+                    : 'Xoá phản hồi này? (Phản hồi sẽ chuyển thành "Bình luận đã bị xoá")';
+                if (confirm(promptMsg)) {
                     $.ajax({
                         url: '/Admin/Comment/Delete',
                         type: 'POST',
                         data: { id: id },
                         success: function (res) {
                             if (res && res.success) {
-                                $('#reply_row_' + id).remove();
-                                if (res.removedParentId) {
-                                    $('#row_' + res.removedParentId).remove();
+                                if (res.softDeleted) {
+                                    $('#reply_content_' + id)
+                                        .css({ color: 'var(--muted)', fontStyle: 'italic' })
+                                        .text('Bình luận đã bị xoá');
+                                    $btn.attr('data-deleted', '1').text('Xoá vĩnh viễn');
+                                    toastr.success('Đã ẩn phản hồi thành "Bình luận đã bị xoá"');
+                                } else {
+                                    $('#reply_row_' + id).remove();
+                                    if (res.removedParentId) {
+                                        $('#row_' + res.removedParentId).remove();
+                                    }
+                                    toastr.success('Đã xoá vĩnh viễn phản hồi');
                                 }
-                                toastr.success('Đã xoá phản hồi');
                             }
                         }
                     });

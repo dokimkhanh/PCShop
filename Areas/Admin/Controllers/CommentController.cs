@@ -35,7 +35,7 @@ namespace PCShop.Areas.Admin.Controllers
                 .ToList();
 
             var repliesByParent = allComments
-                .Where(c => c.ParentId.HasValue && !c.IsDeleted)
+                .Where(c => c.ParentId.HasValue)
                 .GroupBy(c => c.ParentId.Value)
                 .ToDictionary(g => g.Key, g => g.OrderBy(r => r.CreatedDate).ToList());
 
@@ -52,7 +52,7 @@ namespace PCShop.Areas.Admin.Controllers
                     {
                         Comment = c,
                         Replies = replies,
-                        HasAdminReply = c.IsDeleted || c.IsAdminReply || replies.Any(r => r.IsAdminReply)
+                        HasAdminReply = c.IsDeleted || c.IsAdminReply || replies.Any(r => r.IsAdminReply && !r.IsDeleted)
                     };
                 })
                 .Where(t => !t.Comment.IsDeleted || t.Replies.Count > 0)
@@ -175,13 +175,13 @@ namespace PCShop.Areas.Admin.Controllers
 
             if (!comment.ParentId.HasValue)
             {
-                var hasActiveReplies = _dbContext.productComments.Any(c => c.ParentId == id && !c.IsDeleted);
-                if (hasActiveReplies && !comment.IsDeleted)
+                var hasReplies = _dbContext.productComments.Any(c => c.ParentId == id);
+                if (hasReplies && !comment.IsDeleted)
                 {
                     comment.IsDeleted = true;
                     comment.Content = "Bình luận đã bị xoá";
                     _dbContext.SaveChanges();
-                    return Json(new { success = true, softDeleted = true });
+                    return Json(new { success = true, softDeleted = true, isReply = false });
                 }
 
                 var children = _dbContext.productComments.Where(c => c.ParentId == id).ToList();
@@ -191,7 +191,15 @@ namespace PCShop.Areas.Admin.Controllers
                 }
                 _dbContext.productComments.Remove(comment);
                 _dbContext.SaveChanges();
-                return Json(new { success = true, softDeleted = false });
+                return Json(new { success = true, softDeleted = false, isReply = false });
+            }
+
+            if (!comment.IsDeleted)
+            {
+                comment.IsDeleted = true;
+                comment.Content = "Bình luận đã bị xoá";
+                _dbContext.SaveChanges();
+                return Json(new { success = true, softDeleted = true, isReply = true });
             }
 
             var parentId = comment.ParentId.Value;
@@ -202,7 +210,7 @@ namespace PCShop.Areas.Admin.Controllers
             var parent = _dbContext.productComments.Find(parentId);
             if (parent != null && parent.IsDeleted)
             {
-                var remainingReplies = _dbContext.productComments.Any(c => c.ParentId == parentId && !c.IsDeleted);
+                var remainingReplies = _dbContext.productComments.Any(c => c.ParentId == parentId);
                 if (!remainingReplies)
                 {
                     _dbContext.productComments.Remove(parent);
@@ -211,7 +219,7 @@ namespace PCShop.Areas.Admin.Controllers
                 }
             }
 
-            return Json(new { success = true, softDeleted = false, removedParentId = removedParentId });
+            return Json(new { success = true, softDeleted = false, isReply = true, removedParentId = removedParentId });
         }
 
         [HttpPost]

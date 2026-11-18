@@ -15,6 +15,15 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
+IF OBJECT_ID(N'dbo.FK_dbo.ProductComment_dbo.Product_product_id', 'F') IS NOT NULL
+    ALTER TABLE dbo.ProductComment DROP CONSTRAINT [FK_dbo.ProductComment_dbo.Product_product_id]
+GO
+IF OBJECT_ID(N'dbo.FK_RolePermissions_Permissions', 'F') IS NOT NULL
+    ALTER TABLE dbo.RolePermissions DROP CONSTRAINT [FK_RolePermissions_Permissions]
+GO
+IF OBJECT_ID(N'dbo.FK_RolePermissions_Roles', 'F') IS NOT NULL
+    ALTER TABLE dbo.RolePermissions DROP CONSTRAINT [FK_RolePermissions_Roles]
+GO
 IF OBJECT_ID(N'dbo.FK_dbo.tbOrderDetail_dbo.Product_productID', 'F') IS NOT NULL
     ALTER TABLE dbo.tbOrderDetail DROP CONSTRAINT [FK_dbo.tbOrderDetail_dbo.Product_productID]
 GO
@@ -40,19 +49,25 @@ IF OBJECT_ID(N'dbo.FK_dbo.AspNetUserClaims_dbo.AspNetUsers_UserId', 'F') IS NOT 
     ALTER TABLE dbo.AspNetUserClaims DROP CONSTRAINT [FK_dbo.AspNetUserClaims_dbo.AspNetUsers_UserId]
 GO
 
-IF OBJECT_ID(N'dbo.Adv', 'U') IS NOT NULL DROP TABLE dbo.Adv
+IF OBJECT_ID(N'dbo.ProductComment', 'U') IS NOT NULL DROP TABLE dbo.ProductComment
 GO
-IF OBJECT_ID(N'dbo.Category', 'U') IS NOT NULL DROP TABLE dbo.Category
+IF OBJECT_ID(N'dbo.RolePermissions', 'U') IS NOT NULL DROP TABLE dbo.RolePermissions
+GO
+IF OBJECT_ID(N'dbo.Permissions', 'U') IS NOT NULL DROP TABLE dbo.Permissions
+GO
+IF OBJECT_ID(N'dbo.Adv', 'U') IS NOT NULL DROP TABLE dbo.Adv
 GO
 IF OBJECT_ID(N'dbo.News', 'U') IS NOT NULL DROP TABLE dbo.News
 GO
-IF OBJECT_ID(N'dbo.Product', 'U') IS NOT NULL DROP TABLE dbo.Product
-GO
-IF OBJECT_ID(N'dbo.ProductImage', 'U') IS NOT NULL DROP TABLE dbo.ProductImage
+IF OBJECT_ID(N'dbo.tbOrderDetail', 'U') IS NOT NULL DROP TABLE dbo.tbOrderDetail
 GO
 IF OBJECT_ID(N'dbo.tbOrder', 'U') IS NOT NULL DROP TABLE dbo.tbOrder
 GO
-IF OBJECT_ID(N'dbo.tbOrderDetail', 'U') IS NOT NULL DROP TABLE dbo.tbOrderDetail
+IF OBJECT_ID(N'dbo.ProductImage', 'U') IS NOT NULL DROP TABLE dbo.ProductImage
+GO
+IF OBJECT_ID(N'dbo.Product', 'U') IS NOT NULL DROP TABLE dbo.Product
+GO
+IF OBJECT_ID(N'dbo.Category', 'U') IS NOT NULL DROP TABLE dbo.Category
 GO
 IF OBJECT_ID(N'dbo.SystemSettings', 'U') IS NOT NULL DROP TABLE dbo.SystemSettings
 GO
@@ -133,11 +148,34 @@ GO
 CREATE NONCLUSTERED INDEX [IX_UserId] ON dbo.AspNetUserLogins([UserId] ASC)
 GO
 
+CREATE TABLE dbo.Permissions (
+    [Id] INT IDENTITY(1,1) NOT NULL,
+    [Code] NVARCHAR(100) NOT NULL,
+    [Name] NVARCHAR(200) NOT NULL,
+    [Module] NVARCHAR(100) NOT NULL,
+    [Description] NVARCHAR(300) NULL,
+    CONSTRAINT [PK_dbo.Permissions] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [UQ_Permissions_Code] UNIQUE ([Code])
+)
+GO
+
+CREATE TABLE dbo.RolePermissions (
+    [Id] INT IDENTITY(1,1) NOT NULL,
+    [RoleId] NVARCHAR(128) NOT NULL,
+    [PermissionId] INT NOT NULL,
+    CONSTRAINT [PK_dbo.RolePermissions] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [FK_RolePermissions_Roles] FOREIGN KEY ([RoleId]) REFERENCES dbo.AspNetRoles([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_RolePermissions_Permissions] FOREIGN KEY ([PermissionId]) REFERENCES dbo.Permissions([Id]) ON DELETE CASCADE,
+    CONSTRAINT [UQ_RolePermissions_Role_Perm] UNIQUE ([RoleId], [PermissionId])
+)
+GO
+
 CREATE TABLE dbo.Category (
     [id] INT IDENTITY(1,1) NOT NULL,
     [title] NVARCHAR(150) NOT NULL,
     [description] NVARCHAR(MAX) NULL,
     [alias] NVARCHAR(MAX) NULL,
+    [parentID] INT NULL,
     [createdDate] DATETIME NOT NULL CONSTRAINT [DF_Category_createdDate] DEFAULT (GETDATE()),
     [createdBy] NVARCHAR(MAX) NULL,
     [modifiedDate] DATETIME NOT NULL CONSTRAINT [DF_Category_modifiedDate] DEFAULT (GETDATE()),
@@ -181,6 +219,24 @@ CREATE TABLE dbo.ProductImage (
 )
 GO
 CREATE NONCLUSTERED INDEX [IX_ProductId] ON dbo.ProductImage([ProductId] ASC)
+GO
+
+CREATE TABLE dbo.ProductComment (
+    [id] INT IDENTITY(1,1) NOT NULL,
+    [product_id] INT NOT NULL,
+    [parent_id] INT NULL,
+    [author_name] NVARCHAR(120) NOT NULL,
+    [author_email] NVARCHAR(180) NULL,
+    [user_id] NVARCHAR(128) NULL,
+    [content] NVARCHAR(MAX) NOT NULL,
+    [is_admin_reply] BIT NOT NULL CONSTRAINT [DF_ProductComment_is_admin_reply] DEFAULT (0),
+    [is_deleted] BIT NOT NULL CONSTRAINT [DF_ProductComment_is_deleted] DEFAULT (0),
+    [created_date] DATETIME NOT NULL CONSTRAINT [DF_ProductComment_created_date] DEFAULT (GETDATE()),
+    CONSTRAINT [PK_dbo.ProductComment] PRIMARY KEY CLUSTERED ([id] ASC),
+    CONSTRAINT [FK_dbo.ProductComment_dbo.Product_product_id] FOREIGN KEY ([product_id]) REFERENCES dbo.Product ([id]) ON DELETE CASCADE
+)
+GO
+CREATE NONCLUSTERED INDEX [IX_ProductComment_product_id] ON dbo.ProductComment([product_id] ASC)
 GO
 
 CREATE TABLE dbo.tbOrder (
@@ -253,20 +309,23 @@ CREATE TABLE dbo.SystemSettings (
     [settingKey] NVARCHAR(MAX) NULL,
     [settingValue] NVARCHAR(MAX) NULL,
     [settingDescription] NVARCHAR(MAX) NULL,
+    [settingName] NVARCHAR(200) NULL,
+    [settingGroup] NVARCHAR(100) NULL,
+    [settingType] NVARCHAR(50) NULL,
     CONSTRAINT [PK_dbo.SystemSettings] PRIMARY KEY CLUSTERED ([id] ASC)
 )
 GO
 
-INSERT INTO dbo.AspNetRoles ([Id], [Name]) VALUES 
+INSERT INTO dbo.AspNetRoles ([Id], [Name]) VALUES
 (N'd7593c8d-692a-4a25-8ff4-bf9c8fbe2821', N'Admin'),
 (N'f4b93814-72b2-4d24-8149-a0e28e937d5c', N'Nhân viên'),
 (N'906c71c4-9e9f-4318-97c4-2e92c2084c7e', N'Customer');
 GO
 
 INSERT INTO dbo.AspNetUsers (
-    [Id], [UserName], [Email], [EmailConfirmed], 
-    [PasswordHash], [SecurityStamp], [PhoneNumberConfirmed], 
-    [TwoFactorEnabled], [LockoutEnabled], [AccessFailedCount], 
+    [Id], [UserName], [Email], [EmailConfirmed],
+    [PasswordHash], [SecurityStamp], [PhoneNumberConfirmed],
+    [TwoFactorEnabled], [LockoutEnabled], [AccessFailedCount],
     [FullName], [Phone]
 ) VALUES (
     N'33ca0b1c-3b95-4fb5-9003-dfc5210c85ee',
@@ -281,58 +340,25 @@ INSERT INTO dbo.AspNetUsers (
 );
 GO
 
-INSERT INTO dbo.AspNetUserRoles ([UserId], [RoleId]) VALUES 
+INSERT INTO dbo.AspNetUserRoles ([UserId], [RoleId]) VALUES
 (N'33ca0b1c-3b95-4fb5-9003-dfc5210c85ee', N'd7593c8d-692a-4a25-8ff4-bf9c8fbe2821');
 GO
 
 SET IDENTITY_INSERT dbo.Category ON;
-INSERT INTO dbo.Category ([id], [title], [description], [alias], [createdDate], [createdBy], [modifiedDate], [modifiedBy]) VALUES
-(1, N'Laptop Gaming', N'Laptop chơi game và đồ họa hiệu năng cao', N'laptop-gaming', GETDATE(), N'System', GETDATE(), N'System'),
-(2, N'PC Đồng Bộ & Gaming', N'Dàn máy tính để bàn PC lắp ráp và đồng bộ', N'pc-dong-bo-gaming', GETDATE(), N'System', GETDATE(), N'System'),
-(3, N'Linh Kiện Máy Tính', N'CPU, VGA, RAM, Mainboard, Nguồn máy tính', N'linh-kien-may-tinh', GETDATE(), N'System', GETDATE(), N'System'),
-(4, N'Màn Hình Máy Tính', N'Màn hình chuyên game và đồ họa sắc nét', N'man-hinh-may-tinh', GETDATE(), N'System', GETDATE(), N'System'),
-(5, N'Phím Chuột & Phụ Kiện', N'Gaming Gear, Chuột, Bàn phím cơ, Tai nghe', N'phim-chuot-phu-kien', GETDATE(), N'System', GETDATE(), N'System');
+INSERT INTO dbo.Category ([id], [title], [description], [alias], [parentID], [createdDate], [createdBy], [modifiedDate], [modifiedBy]) VALUES
+(1, N'Laptop Gaming', N'Laptop chơi game và đồ họa hiệu năng cao', N'laptop-gaming', NULL, GETDATE(), N'System', GETDATE(), N'System'),
+(2, N'PC Đồng Bộ & Gaming', N'Dàn máy tính để bàn PC lắp ráp và đồng bộ', N'pc-dong-bo-gaming', NULL, GETDATE(), N'System', GETDATE(), N'System'),
+(3, N'Linh Kiện Máy Tính', N'CPU, VGA, RAM, Mainboard, Nguồn máy tính', N'linh-kien-may-tinh', NULL, GETDATE(), N'System', GETDATE(), N'System'),
+(4, N'Màn Hình Máy Tính', N'Màn hình chuyên game và đồ họa sắc nét', N'man-hinh-may-tinh', NULL, GETDATE(), N'System', GETDATE(), N'System'),
+(5, N'Phím Chuột & Phụ Kiện', N'Gaming Gear, Chuột, Bàn phím cơ, Tai nghe', N'phim-chuot-phu-kien', NULL, GETDATE(), N'System', GETDATE(), N'System');
 SET IDENTITY_INSERT dbo.Category OFF;
 GO
 
 SET IDENTITY_INSERT dbo.SystemSettings ON;
-INSERT INTO dbo.SystemSettings ([id], [settingKey], [settingValue], [settingDescription]) VALUES
-(1, N'SettingTitle', N'PCShop - Hệ thống máy tính & linh kiện hàng đầu', N'Tiêu đề trang web'),
-(2, N'SettingLogo', N'/Content/client/images/logo.png', N'Logo website'),
-(3, N'SettingHotline', N'1900 1234', N'Số hotline hỗ trợ'),
-(4, N'SettingEmail', N'support@pcshop.vn', N'Email liên hệ');
+INSERT INTO dbo.SystemSettings ([id], [settingKey], [settingValue], [settingDescription], [settingName], [settingGroup], [settingType]) VALUES
+(1, N'SettingTitle', N'PCShop - Hệ thống máy tính & linh kiện hàng đầu', N'Tiêu đề trang web', N'Tên / Tiêu đề cửa hàng', N'Thông tin chung', N'text'),
+(2, N'SettingLogo', N'/Content/images/logo.png', N'Logo website', N'Logo cửa hàng', N'Giao diện', N'image'),
+(3, N'SettingHotline', N'1900 1234', N'Số hotline hỗ trợ', N'Số hotline hỗ trợ', N'Liên hệ', N'phone'),
+(4, N'SettingEmail', N'support@pcshop.vn', N'Email liên hệ', N'Email liên hệ', N'Liên hệ', N'email');
 SET IDENTITY_INSERT dbo.SystemSettings OFF;
-GO
-
-IF OBJECT_ID('dbo.Permissions', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.Permissions (
-        Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        Code NVARCHAR(100) NOT NULL UNIQUE,
-        Name NVARCHAR(200) NOT NULL,
-        Module NVARCHAR(100) NOT NULL,
-        Description NVARCHAR(300) NULL
-    );
-END
-GO
-
-IF OBJECT_ID('dbo.RolePermissions', 'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.RolePermissions (
-        Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        RoleId NVARCHAR(128) NOT NULL,
-        PermissionId INT NOT NULL,
-        CONSTRAINT FK_RolePermissions_Roles FOREIGN KEY (RoleId) REFERENCES dbo.AspNetRoles(Id) ON DELETE CASCADE,
-        CONSTRAINT FK_RolePermissions_Permissions FOREIGN KEY (PermissionId) REFERENCES dbo.Permissions(Id) ON DELETE CASCADE,
-        CONSTRAINT UQ_RolePermissions_Role_Perm UNIQUE (RoleId, PermissionId)
-    );
-END
-GO
-
-IF COL_LENGTH('dbo.SystemSettings', 'settingName') IS NULL
-    ALTER TABLE dbo.SystemSettings ADD settingName NVARCHAR(200) NULL;
-IF COL_LENGTH('dbo.SystemSettings', 'settingGroup') IS NULL
-    ALTER TABLE dbo.SystemSettings ADD settingGroup NVARCHAR(100) NULL;
-IF COL_LENGTH('dbo.SystemSettings', 'settingType') IS NULL
-    ALTER TABLE dbo.SystemSettings ADD settingType NVARCHAR(50) NULL;
 GO
